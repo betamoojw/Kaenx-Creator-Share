@@ -305,6 +305,8 @@ namespace Kaenx.Creator.Classes
                         xcontent.SetAttributeValue("RefId", $"M-{GetManuId()}_BG-{GetEncoded(bag2.TargetPath)}-{GetEncoded(type.BaggageObject.Name + type.BaggageObject.Extension)}");
                         if (!baggagesApp.Any(b => b.TargetPath == bag2.TargetPath && b.Name == bag2.Name && b.Extension == bag2.Extension))
                             baggagesApp.Add(bag2);
+                        if(!string.IsNullOrEmpty(type.UIHint))
+                            xcontent.SetAttributeValue("HorizontalAlignment", type.UIHint);
                         break;
                     }
 
@@ -745,7 +747,7 @@ namespace Kaenx.Creator.Classes
 
                 doc2.Validate(schemas, (o, e) => {
                     Log($"Fehler beim Validieren! Zeile {e.Exception.LineNumber}:{e.Exception.LinePosition}\r\n--->{e.Message}\r\n--->({o})");
-                    actions.Add(new PublishAction() { Text = $"    Fehler beim Validieren! Zeile {e.Exception.LineNumber}:{e.Exception.LinePosition} -> {e.Message} ({o})", State = PublishState.Fail});
+                    actions.Insert(0, new PublishAction() { Text = $"    Fehler beim Validieren! Zeile {e.Exception.LineNumber}:{e.Exception.LinePosition} -> {e.Message} ({o})", State = PublishState.Fail});
                     flag = true;
                 });
 
@@ -2302,7 +2304,7 @@ namespace Kaenx.Creator.Classes
         {
             Debug.WriteLine($"       {message}");
             if(actions != null)
-                actions.Add(new() { Text = $"       {message}"});
+                actions.Insert(0, new() { Text = $"       {message}"});
         }
 
         private XElement CreateNewXML(string manu)
