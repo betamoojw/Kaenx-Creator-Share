@@ -1463,11 +1463,6 @@ namespace Kaenx.Creator.Classes
 
         private void ParseParameter(Parameter para, XElement parent, AppVersion ver, IVersionBase vbase, StringBuilder headers)
         {
-            if(para.Name == "fTYearDay")
-            {
-
-            }
-
             if((headers != null && para.SavePath != SavePaths.Nowhere) || (headers != null && para.IsInUnion && para.UnionObject != null && para.UnionObject.SavePath != SavePaths.Nowhere))
             {
                 string lineStart;
@@ -1561,26 +1556,62 @@ namespace Kaenx.Creator.Classes
 
                     case ParameterTypes.Float_DPT9:
                     {
-                        paraKnxGet += $"knx.paramFloat(%off%, Float_Enc_DPT9)";
+                        paraKnxGet += "knx.paramFloat(%off%, Float_Enc_DPT9)";
                         break;
                     }
                     case ParameterTypes.Float_IEEE_Single:
                     {
-                        paraKnxGet += $"knx.paramFloat(%off%, Float_Enc_IEEE754Single)";
+                        paraKnxGet += "knx.paramFloat(%off%, Float_Enc_IEEE754Single)";
                         break;
                     }
                     case ParameterTypes.Float_IEEE_Double:
                     {
-                        paraKnxGet += $"knx.paramFloat(%off%, Float_Enc_IEEE754Double)";
+                        paraKnxGet += "knx.paramFloat(%off%, Float_Enc_IEEE754Double)";
                         break;
                     }
 
                     case ParameterTypes.Color:
                     case ParameterTypes.Text:
                     {
-                        paraKnxGet += $"knx.paramData(%off%)";
+                        paraKnxGet += "knx.paramData(%off%)";
                         break;
                     }
+
+                    case ParameterTypes.Time:
+                    {
+                        if(para.ParameterTypeObject.Increment == "PackedSecondsAndMilliseconds"
+                            || para.ParameterTypeObject.Increment == "PackedDaysHoursMinutesAndSeconds"
+                            || para.ParameterTypeObject.Increment == "PackedMinutesSecondsAndMilliseconds")
+                        {
+                            paraKnxGet += "knx.paramData(%off%)";
+                        } else {
+                            string pshift;
+                            if(shift == 0 )
+                            {
+                                pshift = "";
+                            } else {
+                                pshift = $" >> {lineStart.Split(' ')[1]}_Shift";
+                                headers.AppendLine($"{lineStart}_Shift\t{shift}");
+                            } 
+                            string pmask = $" & {lineStart.Split(' ')[1]}_Mask";
+                            string pAccess = "";
+
+                            if(shift == 0 && para.ParameterTypeObject.SizeInBit % 8 == 0) pmask = "";
+                            else
+                                headers.AppendLine($"{lineStart}_Mask\t0x{mask:X4}");
+
+                            if(totalSize <= 8) pAccess = "paramByte";
+                            else if(totalSize <= 16) pAccess = "paramWord";
+                            else if(totalSize <= 32) pAccess = "paramInt";
+                            else throw new Exception("Size to big for Int/Enum");
+
+                            paraKnxGet += $"((uint)((knx.{pAccess}(%off%){pshift}){pmask}))";
+                        }
+                        break;
+                    }
+
+                    default:
+                        throw new NotImplementedException("Export Parameter ParameterTyp wird nicht unterstützt.");
                 }
                 
                 string offsetOut = offset.ToString();
