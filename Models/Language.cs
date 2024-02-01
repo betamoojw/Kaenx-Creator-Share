@@ -15,7 +15,7 @@ namespace Kaenx.Creator.Models
             CultureCode = culture;
         }
 
-        private string _cultureCode = "de-de";
+        private string _cultureCode = "de-DE";
         public string CultureCode
         {
             get { return _cultureCode; }
