@@ -2335,7 +2335,7 @@ namespace Kaenx.Creator.Classes
         {
             Debug.WriteLine($"       {message}");
             if(actions != null)
-                actions.Insert(0, new() { Text = $"       {message}"});
+                actions.Add(new() { Text = $"       {message}"});
         }
 
         private XElement CreateNewXML(string manu)
