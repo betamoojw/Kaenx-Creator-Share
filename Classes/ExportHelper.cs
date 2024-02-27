@@ -452,6 +452,12 @@ namespace Kaenx.Creator.Classes
                 }
                 ver.Procedure = temp.ToString();
 
+                foreach(Message msg in ver.Messages)
+                {
+                    if(msg.Id == -1)
+                        msg.Id = Helper.GetNextFreeId(ver, "Messages");
+                }
+
                 temp.Attributes().Where((x) => x.IsNamespaceDeclaration).Remove();
                 temp.Name = XName.Get(temp.Name.LocalName, currentNamespace);
                 foreach(XElement xele in temp.Descendants())
@@ -461,9 +467,24 @@ namespace Kaenx.Creator.Classes
                     {
                         case "OnError":
                         {
-                            int id = int.Parse(xele.Attribute("MessageRef").Value);
+                            int id = -1;
+                            if(!int.TryParse(xele.Attribute("MessageRef").Value, out id))
+                            {
+                                if(general.Application.Messages.Any(m => m.Name == xele.Attribute("MessageRef").Value))
+                                    id = general.Application.Messages.Single(m => m.Name == xele.Attribute("MessageRef").Value).UId;
+                            }
                             Message msg = ver.Messages.SingleOrDefault(m => m.UId == id);
                             xele.SetAttributeValue("MessageRef", $"{appVersion}_M-{msg.Id}");
+                            break;
+                        }
+
+                        case "LdCtrlCompareProp":
+                        {
+                            if(xele.Attribute("ObjIdx").Value == "0" && xele.Attribute("PropId").Value == "12")
+                                xele.Attribute("InlineData").Value = GetManuId();
+                                
+                            if(xele.Attribute("ObjIdx").Value == "0" && xele.Attribute("PropId").Value == "78")
+                                xele.Attribute("InlineData").Value = $"0000{general.ManufacturerId:X2}{general.Info.AppNumber:X2}{general.Application.Number:X2}";
                             break;
                         }
                     }
