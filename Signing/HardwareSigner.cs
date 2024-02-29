@@ -21,7 +21,12 @@ namespace Kaenx.Creator.Signing
             Type RegistrationKeyEnum = objm.GetType("Knx.Ets.Xml.ObjectModel.RegistrationKey");
             object registrationKey = Enum.Parse(RegistrationKeyEnum, "knxconv");
 
-            if(asm.GetName().Version.ToString().StartsWith("6.")) {
+            if(asm.GetName().Version.ToString().StartsWith("6.2.")) {
+                objm = Assembly.LoadFrom(Path.Combine(basePath, "Knx.Ets.Common.dll"));
+                object knxSchemaVersion = Enum.ToObject(objm.GetType("Knx.Ets.Common.Schema.KnxXmlSchemaVersion"), nsVersion);
+                _type = asm.GetType("Knx.Ets.XmlSigning.Signer.HardwareSigner");
+                _instance = Activator.CreateInstance(_type, hardwareFile, applProgIdMappings, applProgHashes, patchIds, registrationKey, knxSchemaVersion);
+            } else if(asm.GetName().Version.ToString().StartsWith("6.")) {
                 object knxSchemaVersion = Enum.ToObject(objm.GetType("Knx.Ets.Xml.ObjectModel.KnxXmlSchemaVersion"), nsVersion);
                 _type = asm.GetType("Knx.Ets.XmlSigning.Signer.HardwareSigner");
                 if (asm.GetName().Version.ToString().StartsWith("6.0"))

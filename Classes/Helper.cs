@@ -41,6 +41,9 @@ namespace Kaenx.Creator.Classes
                 if(!File.Exists(System.IO.Path.Combine(path, "Knx.Ets.XmlSigning.dll"))) continue;
                 string versionInfo = FileVersionInfo.GetVersionInfo(System.IO.Path.Combine(path, "Knx.Ets.XmlSigning.dll")).FileVersion.Substring(0,3);
                 
+                if(versionInfo == "6.2" && ns < 24)
+                    return path;
+
                 if(versionInfo == "6.1" && ns < 23)
                     return path;
 

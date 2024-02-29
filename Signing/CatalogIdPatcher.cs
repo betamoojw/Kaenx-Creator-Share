@@ -15,7 +15,12 @@ namespace Kaenx.Creator.Signing
         {
             Assembly asm = Assembly.LoadFrom(Path.Combine(basePath, "Knx.Ets.XmlSigning.dll"));
             
-            if(asm.GetName().Version.ToString().StartsWith("6.")) {
+            if(asm.GetName().Version.ToString().StartsWith("6.2.")) {
+                Assembly objm = Assembly.LoadFrom(Path.Combine(basePath, "Knx.Ets.Common.dll"));
+                object knxSchemaVersion = Enum.ToObject(objm.GetType("Knx.Ets.Common.Schema.KnxXmlSchemaVersion"), nsVersion);
+                _type = asm.GetType("Knx.Ets.XmlSigning.Signer.CatalogIdPatcher");
+                _instance = Activator.CreateInstance(_type, catalogFile, hardware2ProgramIdMapping, knxSchemaVersion);
+            } else if(asm.GetName().Version.ToString().StartsWith("6.")) {
                 Assembly objm = Assembly.LoadFrom(Path.Combine(basePath, "Knx.Ets.Xml.ObjectModel.dll"));
                 object knxSchemaVersion = Enum.ToObject(objm.GetType("Knx.Ets.Xml.ObjectModel.KnxXmlSchemaVersion"), nsVersion);
                 _type = asm.GetType("Knx.Ets.XmlSigning.Signer.CatalogIdPatcher");
