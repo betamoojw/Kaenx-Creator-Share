@@ -34,12 +34,11 @@ namespace Kaenx.Creator.Models
             set { _targetPath = value; Changed("TargetPath"); }
         }
 
-        private bool _dataChanged;
         private byte[] _data;
         public byte[] Data
         {
             get { return _data; }
-            set { _dataChanged = true; _data = value; LastModified = DateTime.Now; }
+            set { _data = value; LastModified = DateTime.Now; }
         }
         
         private DateTime _modified;

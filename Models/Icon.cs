@@ -25,12 +25,11 @@ namespace Kaenx.Creator.Models
             set { _name = value; Changed("Name"); LastModified = DateTime.Now; }
         }
 
-        private bool _dataChanged = false;
         private byte[] _data;
         public byte[] Data
         {
             get { return _data; }
-            set { _dataChanged = true; _data = value; LastModified = DateTime.Now; }
+            set { _data = value; LastModified = DateTime.Now; }
         }
 
         private DateTime _modified;
