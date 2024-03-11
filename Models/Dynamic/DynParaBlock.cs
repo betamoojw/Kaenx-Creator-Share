@@ -78,7 +78,12 @@ namespace Kaenx.Creator.Models.Dynamic
             get { return _useTextParam; }
             set { 
                 _useTextParam = value; 
-                if(!_useTextParam) TextRefObject = null;
+                if(!_useTextParam)
+                {
+                    _textRefObject = null;
+                    _textRef = -1; 
+                    Changed("TextRefObject");
+                }
                 Changed("UseTextParameter"); 
             }
         }
@@ -89,7 +94,12 @@ namespace Kaenx.Creator.Models.Dynamic
         public ParameterRef TextRefObject
         {
             get { return _textRefObject; }
-            set { _textRefObject = value; Changed("TextRefObject"); if(value == null) _textRef = -1; }
+            set {  
+                if(value == null)
+                    return;
+                _textRefObject = value;
+                Changed("TextRefObject");
+            }
         }
 
         [JsonIgnore]
