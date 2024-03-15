@@ -153,7 +153,7 @@ namespace Kaenx.Creator.Classes
 
             List<Models.Dynamic.DynModule> mods = new List<Models.Dynamic.DynModule>();
             Helper.GetModules(ver.Dynamics[0], mods);
-            int highestComNumber = ver.ComObjects.OrderByDescending(c => c.Number).FirstOrDefault()?.Number ?? -1;
+            int highestComNumber = ver.ComObjects.OrderByDescending(c => c.Number).FirstOrDefault()?.Number ?? 0;
             int offset = mem.GetFreeOffset();
 
             List<string> checkedMods = new List<string>();
@@ -195,21 +195,26 @@ namespace Kaenx.Creator.Classes
                     {
                         int highestComNumber2 = dmod.ModuleObject.ComObjects.OrderByDescending(c => c.Number).FirstOrDefault()?.Number ?? 0;
                         int lowestComNumber2 = dmod.ModuleObject.ComObjects.OrderBy(c => c.Number).FirstOrDefault()?.Number ?? 1;
-                        argComs.Value = (++highestComNumber).ToString();
+                        
+                        if(highestComNumber == 0 && lowestComNumber2 == 0)
+                        {
+                            highestComNumber++;
+                        }
+                        argComs.Value = highestComNumber.ToString();
 
                         if(argComs.UseAllocator && !checkedMods.Contains(dmod.ModuleObject.Name))
                         {
                             argComs.Allocator.Start = (long)highestComNumber;
-                            argComs.Allocator.Max = argComs.Allocator.Start + (mods.Count(m => m.ModuleUId == dmod.ModuleUId) * (highestComNumber2+1)) + 1;
+                            argComs.Allocator.Max = argComs.Allocator.Start + (mods.Count(m => m.ModuleUId == dmod.ModuleUId) * (highestComNumber2+1));
                         }
 
-                        argComs.Argument.Allocates = highestComNumber2 - lowestComNumber2 + 1;
-                        highestComNumber += highestComNumber2;
+                        argComs.Argument.Allocates = highestComNumber2 + 1;
+                        highestComNumber += argComs.Argument.Allocates;
                     }
                 }
 
-                
-                        checkedMods.Add(dmod.ModuleObject.Name);
+                if(!checkedMods.Contains(dmod.ModuleObject.Name))
+                    checkedMods.Add(dmod.ModuleObject.Name);
             }
 
             ver.HighestComNumber = highestComNumber;
