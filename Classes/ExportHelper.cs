@@ -1544,7 +1544,19 @@ namespace Kaenx.Creator.Classes
                     case ParameterTypes.NumberInt:
                     case ParameterTypes.Enum:
                     {
-                        string ptype = para.ParameterTypeObject.Type == ParameterTypes.NumberInt ? "(int)" : "(uint)";
+                        string ptype = "(uint)";
+                        if(para.ParameterTypeObject.Type == ParameterTypes.NumberInt)
+                        {
+                            if(para.ParameterTypeObject.SizeInBit <= 8)
+                                ptype = "(int8_t)";
+                            else if(para.ParameterTypeObject.SizeInBit <= 16)
+                                ptype = "(int16_t)";
+                            else if(para.ParameterTypeObject.SizeInBit <= 32)
+                                ptype = "(int32_t)";
+                            
+                            if(para.ParameterTypeObject.SizeInBit % 8 != 0)
+                                throw new Exception("Aktuell sind als Größe von NumberInt nur 8, 16 und 32 möglich");
+                        }
 
                         if(para.ParameterTypeObject.SizeInBit == 1)
                         {
