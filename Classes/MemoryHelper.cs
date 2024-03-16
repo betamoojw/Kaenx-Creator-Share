@@ -155,6 +155,7 @@ namespace Kaenx.Creator.Classes
             Helper.GetModules(ver.Dynamics[0], mods);
             int highestComNumber = ver.ComObjects.OrderByDescending(c => c.Number).FirstOrDefault()?.Number ?? 0;
             int offset = mem.GetFreeOffset();
+            bool firstComAPP = true;
 
             List<string> checkedMods = new List<string>();
 
@@ -196,9 +197,10 @@ namespace Kaenx.Creator.Classes
                         int highestComNumber2 = dmod.ModuleObject.ComObjects.OrderByDescending(c => c.Number).FirstOrDefault()?.Number ?? 0;
                         int lowestComNumber2 = dmod.ModuleObject.ComObjects.OrderBy(c => c.Number).FirstOrDefault()?.Number ?? 1;
                         
-                        if(highestComNumber == 0 && lowestComNumber2 == 0)
+                        if(highestComNumber == 0 && lowestComNumber2 == 0 || firstComAPP)
                         {
                             highestComNumber++;
+                            firstComAPP = false;
                         }
                         argComs.Value = highestComNumber.ToString();
 

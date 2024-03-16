@@ -621,7 +621,7 @@ namespace Kaenx.Creator.Classes
                         modStartPara.Add(prefix, (allocators[dargp.Allocator.Name], dargp.Argument.Allocates));
 
                     allocators[dargp.Allocator.Name] += dargp.Argument.Allocates;
-                } else if(!dmod.ModuleObject.IsOpenKnxModule && !modStartPara.ContainsKey(prefix))
+                } else if(!modStartPara.ContainsKey(prefix))
                 {
                     int size = (dmod.ModuleObject.Memory.Sections.Count - 1) * 16;
                     if(dmod.ModuleObject.Memory.Sections.Count > 0)
@@ -641,7 +641,7 @@ namespace Kaenx.Creator.Classes
                             modStartComs.Add(prefix, (allocators[dargc.Allocator.Name], dargc.Argument.Allocates));
 
                         allocators[dargc.Allocator.Name] += dargc.Argument.Allocates;
-                    } else if(!dmod.ModuleObject.IsOpenKnxModule && !modStartComs.ContainsKey(prefix))
+                    } else if(!modStartComs.ContainsKey(prefix))
                     {
                         long size = 0;
                         if(dmod.ModuleObject.ComObjects.Count > 0)
@@ -1650,7 +1650,11 @@ namespace Kaenx.Creator.Classes
                 string offsetOut = offset.ToString();
                 if(vbase is Models.Module mod2)
                 {
-                    if((mod2.IsOpenKnxModule && mod2.Name.EndsWith("Templ")) || !mod2.IsOpenKnxModule)
+                    List<DynModule> mods = new List<DynModule>();
+                    Helper.GetModules(ver.Dynamics[0], mods);
+                    int modCount = mods.Count(m => m.ModuleUId == mod2.UId);
+
+                    if(modCount > 1)
                     {
                         string off = paraKnxGet.Replace("%off%", $"({prefix}_ParamBlockOffset + {prefix}_ParamBlockSize * X + {offset})");
                         headers.AppendLine(lineComm);
@@ -1659,7 +1663,7 @@ namespace Kaenx.Creator.Classes
                         headers.AppendLine(lineComm);
                         headers.AppendLine($"{paraAccess} {off}");
                     } else {
-                        string off = paraKnxGet.Replace("%off%", offset.ToString());
+                        string off = paraKnxGet.Replace("%off%", $"({prefix}_ParamBlockOffset + {offset})");
                         headers.AppendLine(lineComm);
                         headers.AppendLine($"{paraAccess} {off}");
                     }

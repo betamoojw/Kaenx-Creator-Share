@@ -653,7 +653,7 @@ namespace Kaenx.Creator.Classes
                         if (dp._parameter != -1)
                             dp.ParameterRefObject = ParaRefs[dp._parameter];
                         if(dp.HasHelptext)
-                            dp.Helptext = general.Application.Helptexts.SingleOrDefault(p => p.UId == dp._helptextId);
+                            dp.Helptext = general.Application.Helptexts.FirstOrDefault(p => p.UId == dp._helptextId);
                         if(dp.UseIcon && dp._iconId != -1)
                             dp.IconObject = general.Icons.SingleOrDefault(i => i.UId == dp._iconId);
                         break;
