@@ -271,7 +271,8 @@ namespace Kaenx.Creator.Classes
                                     iconsApp.Add(enu.IconObject);
                             }
 
-                            headers.AppendLine($"#define PT_{type.Name}_{enu.Name} {enu.Value}");
+                            if(type.ExportInHeader)
+                                headers.AppendLine($"#define PT_{type.Name}_{enu.Name} {enu.Value}");
                         }
                         break;
 

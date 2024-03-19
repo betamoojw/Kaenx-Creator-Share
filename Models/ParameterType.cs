@@ -83,6 +83,7 @@ namespace Kaenx.Creator.Models
                 Enums.Clear();
                 BaggageObject = null;
                 TranslateEnums = true;
+                ExportInHeader = false;
                 Changed("Type");
             }
         }
@@ -122,6 +123,13 @@ namespace Kaenx.Creator.Models
         {
             get { return _otherValue; }
             set { _otherValue = value; Changed("OtherValue"); }
+        }
+
+        private bool _exportInHeader = true;
+        public bool ExportInHeader
+        {
+            get { return _exportInHeader; }
+            set { _exportInHeader = value; Changed("ExportInHeader"); }
         }
 
         private string _uihint = "None";
