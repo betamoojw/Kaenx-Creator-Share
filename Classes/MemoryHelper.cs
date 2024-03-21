@@ -194,7 +194,7 @@ namespace Kaenx.Creator.Classes
                     Models.Dynamic.DynModuleArg argComs = dmod.Arguments.SingleOrDefault(a => a.ArgumentId == dmod.ModuleObject.ComObjectBaseNumberUId);
                     if(argComs != null)
                     {
-                        int highestComNumber2 = dmod.ModuleObject.ComObjects.OrderByDescending(c => c.Number).FirstOrDefault()?.Number ?? 0;
+                        int highestComNumber2 = dmod.ModuleObject.ComObjects.OrderByDescending(c => c.Number).FirstOrDefault()?.Number ?? -1;
                         int lowestComNumber2 = dmod.ModuleObject.ComObjects.OrderBy(c => c.Number).FirstOrDefault()?.Number ?? 1;
                         
                         if(highestComNumber == 0 && lowestComNumber2 == 0 || firstComAPP)
@@ -203,14 +203,14 @@ namespace Kaenx.Creator.Classes
                             firstComAPP = false;
                         }
                         argComs.Value = highestComNumber.ToString();
+                        argComs.Argument.Allocates = highestComNumber2 + 1;
 
                         if(argComs.UseAllocator && !checkedMods.Contains(dmod.ModuleObject.Name))
                         {
                             argComs.Allocator.Start = (long)highestComNumber;
-                            argComs.Allocator.Max = argComs.Allocator.Start + (mods.Count(m => m.ModuleUId == dmod.ModuleUId) * (highestComNumber2+1));
+                            argComs.Allocator.Max = argComs.Allocator.Start + (mods.Count(m => m.ModuleUId == dmod.ModuleUId) * argComs.Argument.Allocates); //;(mods.Count(m => m.ModuleUId == dmod.ModuleUId) * (highestComNumber2+1));
                         }
 
-                        argComs.Argument.Allocates = highestComNumber2 + 1;
                         highestComNumber += argComs.Argument.Allocates;
                     }
                 }
