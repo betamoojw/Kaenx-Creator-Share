@@ -17,18 +17,5 @@ namespace Kaenx.Creator.Models
 
         public ObservableCollection<Translation> Text {get;set;} = new ObservableCollection<Translation>();
         public ObservableCollection<CatalogItem> Items { get; set; } = new ObservableCollection<CatalogItem>();
-
-
-        //todo remove hardware
-        [JsonIgnore]
-        public Hardware Hardware { get; set; }
-
-        [JsonIgnore]
-        public string _hardwareName;
-        public string HardwareName
-        {
-            get { return Hardware?.Name; }
-            set { _hardwareName = value; }
-        }
     }
 }

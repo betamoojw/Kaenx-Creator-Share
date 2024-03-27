@@ -10,7 +10,6 @@ namespace Kaenx.Creator.Models
 {
     public class Baggage : INotifyPropertyChanged
     {
-        
         private int _uid = -1;
         public int UId
         {
@@ -53,32 +52,10 @@ namespace Kaenx.Creator.Models
             get { return LastModified.ToString("G", System.Threading.Thread.CurrentThread.CurrentCulture); }
         }
 
-        //TODO implement converter
-        // BitmapImage image;
-        // MemoryStream ms = null;
-
-        // public ImageSource Source
-        // {
-        //     get {
-        //         if(image == null || _dataChanged)
-        //         {
-        //             if(ms != null) ms.Dispose();
-        //             ms = new MemoryStream(Data);
-        //             image = new BitmapImage();
-        //             image.BeginInit();
-        //             image.StreamSource = ms;
-        //             image.EndInit();
-        //             _dataChanged = false;
-        //         }
-        //         return image;
-        //     }
-        // }
-
         public Baggage Copy()
         {
             return (Baggage)this.MemberwiseClone();
         }
-
 
         public event PropertyChangedEventHandler PropertyChanged;
         private void Changed(string name)

@@ -45,10 +45,9 @@ namespace Kaenx.Creator.Classes
         private static void MemoryCalculationGroups(AppVersion ver, Memory mem)
         {
             int maxSize = (ver.AddressTableMaxCount+2) * 2;
-            maxSize--; //TODO check why the heck it is smaller
+            maxSize--;
             if(mem.IsAutoSize && (maxSize + ver.AddressTableOffset) > mem.GetCount())
                 mem.AddBytes((maxSize + ver.AddressTableOffset) - mem.GetCount());
-            //if(mem.Size < maxSize) maxSize = mem.Size;
             mem.SetBytesUsed(MemoryByteUsage.GroupAddress, maxSize, ver.AddressTableOffset);
         }
 
@@ -58,7 +57,6 @@ namespace Kaenx.Creator.Classes
             maxSize--;
             if(mem.IsAutoSize && (maxSize + ver.AssociationTableOffset) > mem.GetCount())
                 mem.AddBytes((maxSize + ver.AssociationTableOffset) - mem.GetCount());
-            //if(mem.Size < maxSize) maxSize = mem.Size;
             mem.SetBytesUsed(MemoryByteUsage.Association, maxSize, ver.AssociationTableOffset);
         }
 
@@ -68,7 +66,6 @@ namespace Kaenx.Creator.Classes
             int maxSize = (ver.ComObjects.Count * 3) + 2;
             if(mem.IsAutoSize && (maxSize + ver.ComObjectTableOffset) > mem.GetCount())
                 mem.AddBytes((maxSize + ver.ComObjectTableOffset) - mem.GetCount());
-            //if(mem.Size < maxSize) maxSize = mem.Size;
             mem.SetBytesUsed(MemoryByteUsage.Coms, maxSize, ver.ComObjectTableOffset);
         }
 
@@ -84,7 +81,6 @@ namespace Kaenx.Creator.Classes
                     if(!mem.IsAutoSize) throw new Exception($"Parameter {para.Name} does not fit in Memory"); //TODO MessageBox.Show(string.Format(Properties.Messages.memcalc_para, para.Name), Properties.Messages.memcalc_title, MessageBoxButton.OK, MessageBoxImage.Error);
                     
                     int toadd = ((para.Offset + sizeInByte) - mem.GetCount());
-                    //if(para.ParameterTypeObject.SizeInBit > 8) toadd += (para.ParameterTypeObject.SizeInBit / 8) - 1;
                     mem.AddBytes(toadd);
                 }
 
