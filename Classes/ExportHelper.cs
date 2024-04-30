@@ -1334,20 +1334,24 @@ namespace Kaenx.Creator.Classes
                         }
 
                         line = $"#define Ko{prefix}_{HeaderNameEscape(com.Name)}";
-                        headers.AppendLine($"#define {prefix}_Ko{HeaderNameEscape(com.Name)} {com.Number}");
+                        string definel = $"{prefix}_Ko{HeaderNameEscape(com.Name)}";
+                        headers.AppendLine($"#define {definel} {com.Number}");
 
-                        if((vmod.IsOpenKnxModule && vmod.Name.EndsWith("Templ")) || !vmod.IsOpenKnxModule)
+                        if(vmod.Name.EndsWith("Share"))
                         {
-                            headers.AppendLine($"{line}Index(X) knx.getGroupObject({prefix}_KoOffset + {prefix}_KoBlockSize * X + {com.Number})");
-                            headers.AppendLine($"{line} knx.getGroupObject({prefix}_KoOffset + {prefix}_KoBlockSize * channelIndex() + {com.Number})");
+                            headers.AppendLine($"{line} knx.getGroupObject({definel} + {prefix}_KoOffset)");
+                        } else if((vmod.IsOpenKnxModule && vmod.Name.EndsWith("Templ")) || !vmod.IsOpenKnxModule)
+                        {
+                            headers.AppendLine($"{line}Index(X) knx.getGroupObject({prefix}_KoOffset + {prefix}_KoBlockSize * X + {definel})");
+                            headers.AppendLine($"{line} knx.getGroupObject({prefix}_KoOffset + {prefix}_KoBlockSize * channelIndex() + {definel})");
                         } else {
-                            headers.AppendLine($"{line} knx.getGroupObject({com.Number})");
+                            headers.AppendLine($"{line} knx.getGroupObject({definel})");
                         }
                     }
                     else
                     {
                         headers.AppendLine($"#define APP_Ko{HeaderNameEscape(com.Name)} {com.Number}");
-                        headers.AppendLine($"#define KoAPP_{HeaderNameEscape(com.Name)} knx.getGroupObject({com.Number})");
+                        headers.AppendLine($"#define KoAPP_{HeaderNameEscape(com.Name)} knx.getGroupObject(APP_Ko{HeaderNameEscape(com.Name)})");
                     }
                 }
 
