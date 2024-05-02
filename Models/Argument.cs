@@ -23,7 +23,7 @@ namespace Kaenx.Creator.Models
             set { _id = value; Changed("Id"); }
         }
         
-        private int _alloc = 0;
+        private int _alloc = 1;
         public int Allocates
         {
             get { return _alloc; }
