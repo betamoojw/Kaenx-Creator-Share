@@ -604,7 +604,7 @@ namespace Kaenx.Creator.Classes
                 if(dmod.ModuleObject.IsOpenKnxModule)
                 {
                     OpenKnxModule omod = ver.OpenKnxModules.Single(m => m.Name == dmod.ModuleObject.Name.Split(' ')[0]);
-                    prefix = omod.Prefix;
+                    prefix = omod.Prefix + "_" + dmod.ModuleObject.Name.Split(' ')[1];
                 }
 
                 //if(!modStartPara.ContainsKey(prefix))
@@ -1337,6 +1337,11 @@ namespace Kaenx.Creator.Classes
                         string definel = $"{prefix}_Ko{HeaderNameEscape(com.Name)}";
                         headers.AppendLine($"#define {definel} {com.Number}");
 
+                        if(vmod.IsOpenKnxModule)
+                        {
+                            prefix += "_" + vmod.Name.Substring(vmod.Name.IndexOf(' ')+1);
+                        }
+
                         if(vmod.Name.EndsWith("Share"))
                         {
                             headers.AppendLine($"{line} knx.getGroupObject({definel} + {prefix}_KoOffset)");
@@ -1494,23 +1499,28 @@ namespace Kaenx.Creator.Classes
                 string lineStart;
                 string lineComm = "";
                 string prefix = "";
+                string extendedPrefix = "";
+                string prefixName = "";
                 if(vbase is Models.Module mod)
                 {
                     if(mod.IsOpenKnxModule)
                     {   
                         OpenKnxModule omod = ver.OpenKnxModules.Single(m => m.Name == mod.Name.Split(' ')[0]);
-                        lineStart = $"#define {omod.Prefix}_{HeaderNameEscape(para.Name)}";
                         prefix = omod.Prefix;
+                        extendedPrefix = prefix  + "_" + mod.Name.Substring(mod.Name.IndexOf(' ')+1);
                     } else {
-                        lineStart = $"#define {mod.Prefix}_{HeaderNameEscape(para.Name)}";
                         prefix = mod.Prefix;
+                        extendedPrefix = prefix;
                     }
                 } else {
-                    lineStart = $"#define APP_{HeaderNameEscape(para.Name)}";
+                    prefix = "APP";
+                    extendedPrefix = prefix;
                 }
+                lineStart = $"#define {extendedPrefix}_{HeaderNameEscape(para.Name)}";
+                prefixName = $"{prefix}_{HeaderNameEscape(para.Name)}";
                 
                 int offset = 0;
-                string linePara = lineStart;
+                string linePara = $"#define {prefixName}";
                 if(para.IsInUnion && para.UnionObject != null)
                 {
                     lineComm += $"// UnionOffset: {para.UnionObject.Offset}, ParaOffset: {para.Offset}";
@@ -1540,7 +1550,7 @@ namespace Kaenx.Creator.Classes
                     mask += (ulong)Math.Pow(2, i);
                     
 
-                string paraAccess = $"{lineStart.Split(' ')[0]} Param{lineStart.Split(' ')[1]}";
+                string paraAccess = $"{lineStart.Split(' ')[0]} Param{prefixName}";
                 string paraKnxGet = "";
 
                 switch(para.ParameterTypeObject.Type)
@@ -1572,15 +1582,15 @@ namespace Kaenx.Creator.Classes
                             {
                                 pshift = "";
                             } else {
-                                pshift = $" >> {lineStart.Split(' ')[1]}_Shift";
-                                headers.AppendLine($"{lineStart}_Shift\t{shift}");
+                                pshift = $" >> {prefixName}_Shift";
+                                headers.AppendLine($"#define {prefixName}_Shift\t{shift}");
                             } 
-                            string pmask = $" & {lineStart.Split(' ')[1]}_Mask";
+                            string pmask = $" & {prefixName}_Mask";
                             string pAccess = "";
 
                             if(shift == 0 && para.ParameterTypeObject.SizeInBit % 8 == 0) pmask = "";
                             else
-                                headers.AppendLine($"{lineStart}_Mask\t0x{mask:X4}");
+                                headers.AppendLine($"#define {prefixName}_Mask\t0x{mask:X4}");
 
                             if(totalSize <= 8) pAccess = "paramByte";
                             else if(totalSize <= 16) pAccess = "paramWord";
@@ -1628,15 +1638,15 @@ namespace Kaenx.Creator.Classes
                             {
                                 pshift = "";
                             } else {
-                                pshift = $" >> {lineStart.Split(' ')[1]}_Shift";
-                                headers.AppendLine($"{lineStart}_Shift\t{shift}");
+                                pshift = $" >> {prefixName}_Shift";
+                                headers.AppendLine($"#define {prefixName}_Shift\t{shift}");
                             } 
-                            string pmask = $" & {lineStart.Split(' ')[1]}_Mask";
+                            string pmask = $" & {prefixName}_Mask";
                             string pAccess = "";
 
                             if(shift == 0 && para.ParameterTypeObject.SizeInBit % 8 == 0) pmask = "";
                             else
-                                headers.AppendLine($"{lineStart}_Mask\t0x{mask:X4}");
+                                headers.AppendLine($"#define {prefixName}_Mask\t0x{mask:X4}");
 
                             if(totalSize <= 8) pAccess = "paramByte";
                             else if(totalSize <= 16) pAccess = "paramWord";
@@ -1658,29 +1668,29 @@ namespace Kaenx.Creator.Classes
                     List<DynModule> mods = new List<DynModule>();
                     Helper.GetModules(ver.Dynamics[0], mods);
                     int modCount = mods.Count(m => m.ModuleUId == mod2.UId);
-
+                    
                     if(modCount > 1)
                     {
-                        string off = paraKnxGet.Replace("%off%", $"({prefix}_ParamBlockOffset + {prefix}_ParamBlockSize * X + {offset})");
+                        string off = paraKnxGet.Replace("%off%", $"({extendedPrefix}_ParamBlockOffset + {extendedPrefix}_ParamBlockSize * X + {prefixName})");
                         headers.AppendLine(lineComm);
                         headers.AppendLine($"{paraAccess}Index(X) {off}");
-                        off = paraKnxGet.Replace("%off%", $"({prefix}_ParamBlockOffset + {prefix}_ParamBlockSize * channelIndex() + {offset})");
+                        off = paraKnxGet.Replace("%off%", $"({extendedPrefix}_ParamBlockOffset + {extendedPrefix}_ParamBlockSize * channelIndex() + {prefixName})");
                         headers.AppendLine(lineComm);
                         headers.AppendLine($"{paraAccess} {off}");
                     } else {
-                        string off = paraKnxGet.Replace("%off%", $"({prefix}_ParamBlockOffset + {offset})");
+                        string off = paraKnxGet.Replace("%off%", $"({extendedPrefix}_ParamBlockOffset + {prefixName})");
                         headers.AppendLine(lineComm);
                         headers.AppendLine($"{paraAccess} {off}");
                     }
                 } else {
-                    paraKnxGet = paraKnxGet.Replace("%off%", offset.ToString());
+                    paraKnxGet = paraKnxGet.Replace("%off%", prefixName);
                     headers.AppendLine(lineComm);
                     headers.AppendLine($"{paraAccess} {paraKnxGet}");
                 }
 
                 if(para.ParameterTypeObject.Name.StartsWith("DelayTime"))
                 {
-                    headers.AppendLine($"{paraAccess}MS (paramDelay(Param{lineStart.Split(' ')[1]}))");
+                    headers.AppendLine($"{paraAccess}MS (paramDelay(Param{prefixName}))");
                 }
             }
 
