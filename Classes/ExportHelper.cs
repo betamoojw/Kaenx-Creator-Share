@@ -1902,8 +1902,7 @@ namespace Kaenx.Creator.Classes
         private void HandleMod(DynModule mod, XElement parent, AppVersion ver)
         {
             XElement xmod = new XElement(Get("Module"));
-            if(mod.Id == -1)
-                mod.Id = moduleCounter++;
+            mod.Id = moduleCounter++;
             xmod.SetAttributeValue("Id", $"{appVersionMod}_{(appVersionMod.Contains("_MD-") ? "SM":"MD")}-{mod.ModuleObject.Id}_M-{mod.Id}");
             xmod.SetAttributeValue("RefId", $"{appVersionMod}_MD-{mod.ModuleObject.Id}");
 
