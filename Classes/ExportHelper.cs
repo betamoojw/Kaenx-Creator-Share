@@ -1055,13 +1055,15 @@ namespace Kaenx.Creator.Classes
                     appVersionMod = $"{modVersion}_{(depth == 0 ? "MD" : "SM")}-{mod.Id}";
                     string newModVersion = appVersionMod;
                     xmod.SetAttributeValue("Id", $"{appVersionMod}");
+                    mod.ExportHelper = appVersionMod;
 
                     foreach (Models.Argument arg in mod.Arguments)
                     {
                         XElement xarg = new XElement(Get("Argument"));
                         if (arg.Id == -1)
                             arg.Id = Helper.GetNextFreeId(mod, "Arguments");
-                        xarg.SetAttributeValue("Id", $"{appVersionMod}_A-{arg.Id}");
+                        arg.ExportHelper = $"{mod.ExportHelper}_A-{arg.Id}";
+                        xarg.SetAttributeValue("Id", arg.ExportHelper);
                         xarg.SetAttributeValue("Name", arg.Name);
                         xarg.SetAttributeValue("Allocates", arg.Allocates);
                         temp.Add(xarg);
@@ -1904,13 +1906,13 @@ namespace Kaenx.Creator.Classes
             XElement xmod = new XElement(Get("Module"));
             mod.Id = moduleCounter++;
             xmod.SetAttributeValue("Id", $"{appVersionMod}_{(appVersionMod.Contains("_MD-") ? "SM":"MD")}-{mod.ModuleObject.Id}_M-{mod.Id}");
-            xmod.SetAttributeValue("RefId", $"{appVersionMod}_MD-{mod.ModuleObject.Id}");
+            xmod.SetAttributeValue("RefId", mod.ModuleObject.ExportHelper); // $"{appVersionMod}_MD-{mod.ModuleObject.Id}");
 
             int argCounter = 1;
             foreach(DynModuleArg arg in mod.Arguments)
             {
                 XElement xarg = new XElement(Get(arg.Argument.Type.ToString() + "Arg"));
-                xarg.SetAttributeValue("RefId", $"{appVersion}_MD-{mod.ModuleObject.Id}_A-{arg.Argument.Id}");
+                xarg.SetAttributeValue("RefId", arg.Argument.ExportHelper); // $"{appVersion}_MD-{mod.ModuleObject.Id}_A-{arg.Argument.Id}");
 
                 //M-0002_A-20DE-22-4365-O000A_MD-3_M-18_A-3
                 if(arg.Argument.Type == ArgumentTypes.Text)

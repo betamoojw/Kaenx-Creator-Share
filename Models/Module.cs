@@ -124,6 +124,10 @@ namespace Kaenx.Creator.Models
         public long LastParameterRefId { get; set; } = 0;
         public bool IsOpenKnxModule { get; set; } = false;
 
+        
+        [JsonIgnore]
+        public string ExportHelper { get; set; } = ""; //helper for storing set id
+
         public event PropertyChangedEventHandler PropertyChanged;
         private void Changed(string name)
         {

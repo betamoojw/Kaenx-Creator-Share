@@ -695,7 +695,7 @@ namespace Kaenx.Creator.Classes
                     case Models.Dynamic.DynModule dm:
                         if(dm._module != -1)
                         {
-                            dm.ModuleObject = general.Application.Modules.Single(m => m.UId == dm._module);
+                            dm.ModuleObject = mod.Modules.Single(m => m.UId == dm._module); // general.Application.Modules.Single(m => m.UId == dm._module);
                             foreach(Models.Dynamic.DynModuleArg arg in dm.Arguments)
                             {
                                 if(arg._argId != -1)

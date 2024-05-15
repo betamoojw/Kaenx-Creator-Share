@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Collections.ObjectModel;
+using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.ComponentModel;
+using Newtonsoft.Json;
 
 namespace Kaenx.Creator.Models
 {
@@ -44,6 +46,8 @@ namespace Kaenx.Creator.Models
             set { _type = value; Changed("Type"); }
         }
 
+        [JsonIgnore]
+        public string ExportHelper { get; set; } = ""; //helper for storing id
 
         public event PropertyChangedEventHandler PropertyChanged;
         private void Changed(string name)
