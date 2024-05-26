@@ -1273,6 +1273,8 @@ namespace Kaenx.Creator.Classes
                 xpref.SetAttributeValue("Id", id);
                 if(!string.IsNullOrEmpty(pref.Name))
                     xpref.SetAttributeValue("Name", pref.Name);
+                if(pref.DisplayOrder != -1)
+                    xpref.SetAttributeValue("DisplayOrder", pref.DisplayOrder);
 
                 if(pref.OverwriteAccess && pref.Access != ParamAccess.ReadWrite)
                     xpref.SetAttributeValue("Access", pref.Access.ToString());
