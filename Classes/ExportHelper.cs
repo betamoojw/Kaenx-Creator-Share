@@ -520,6 +520,7 @@ namespace Kaenx.Creator.Classes
             }
 
             XElement xscript = new XElement(Get("Script"), "");
+            xscript.Value = ver.Script;
             xunderapp.Add(xscript);
 
             #region BusInterfaces
