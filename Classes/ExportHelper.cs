@@ -1576,6 +1576,12 @@ namespace Kaenx.Creator.Classes
                             
                             if(para.ParameterTypeObject.SizeInBit % 8 != 0)
                                 throw new Exception("Aktuell sind als Größe von NumberInt nur 8, 16 und 32 möglich");
+
+                            // TODO implement for Int 
+                            // #define Abc_LeftShift 2 
+                            // #define Abc_Shift 1
+
+                            // result = (int8_t)(knx.paramByte(Abc) << Abc_LeftShift) >> (Abc_LeftShift + Abc_Shift);
                         }
 
                         if(para.ParameterTypeObject.SizeInBit == 1)
