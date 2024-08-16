@@ -2,6 +2,7 @@ using Kaenx.Creator.Models;
 using Kaenx.Creator.Models.Dynamic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using OpenKNX.Toolbox.Sign;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -19,51 +20,9 @@ namespace Kaenx.Creator.Classes
         private static Dictionary<long, ComObject> Coms;
         private static Dictionary<long, ComObjectRef> ComRefs;
 
-        public static string GetAssemblyPath(int ns)
+        public static bool CheckExportNamespace(int ns)
         {
-            List<string> dirs = new List<string>()
-            {
-                @"C:\Program Files (x86)\ETS6",
-                @"C:\Program Files (x86)\ETS5",
-                @"C:\Program Files (x86)\ETS4",
-                @"C:\Program Files\ETS6",
-                @"C:\Program Files\ETS5",
-                @"C:\Program Files\ETS4"
-            };
-            
-            if(Directory.Exists(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "CV"))) {
-                foreach(string path in Directory.GetDirectories(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "CV")))
-                    dirs.Insert(0, path);
-            }
-
-            foreach(string path in dirs)
-            {
-                if(!File.Exists(System.IO.Path.Combine(path, "Knx.Ets.XmlSigning.dll"))) continue;
-                string versionInfo = FileVersionInfo.GetVersionInfo(System.IO.Path.Combine(path, "Knx.Ets.XmlSigning.dll")).FileVersion.Substring(0,3);
-                
-                if(versionInfo == "6.2" && ns < 24)
-                    return path;
-
-                if(versionInfo == "6.1" && ns < 23)
-                    return path;
-
-                if(versionInfo == "6.0" && ns < 22)
-                    return path;
-
-                if(versionInfo == "5.7" && ns == 20)
-                    return path;
-
-                if(versionInfo == "5.6" && ns == 14)
-                    return path;
-
-                if(versionInfo == "5.1" && ns == 13)
-                    return path;
-
-                if(versionInfo == "4.0" && ns == 11)
-                    return path;
-            }
-
-            return "";
+            return !string.IsNullOrEmpty(SignHelper.FindEtsPath(ns));
         }
 
         public static string CheckImportVersion(string json, int version)

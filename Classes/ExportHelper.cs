@@ -1,6 +1,6 @@
 using Kaenx.Creator.Models;
 using Kaenx.Creator.Models.Dynamic;
-using Kaenx.Creator.Signing;
+using OpenKNX.Toolbox.Sign;
 using System;
 using System.Collections.ObjectModel;
 using System.Collections.Generic;
@@ -25,29 +25,23 @@ namespace Kaenx.Creator.Classes
         string appVersion;
         string appVersionMod;
         string currentNamespace;
-        string convPath;
         string filePath;
         string headerPath;
-        string toolVersion = "5.7.617.38708";
         List<Icon> iconsApp = new List<Icon>();
         List<string> buttonScripts;
         ObservableCollection<PublishAction> actions;
 
-        public ExportHelper(MainModel g, string cp, string fP)
+        public ExportHelper(MainModel g, string fP)
         {
             general = g;
-            convPath = cp;
             filePath = fP;
-            SetToolVersion();
         }
 
-        public ExportHelper(MainModel g, string cp, string fP, string hP)
+        public ExportHelper(MainModel g, string fP, string hP)
         {
             general = g;
-            convPath = cp;
             filePath = fP;
             headerPath = hP;
-            SetToolVersion();
         }
 
 
@@ -59,12 +53,6 @@ namespace Kaenx.Creator.Classes
             if(!languages.ContainsKey(lang)) languages.Add(lang, new Dictionary<string, Dictionary<string, string>>());
             if(!languages[lang].ContainsKey(id)) languages[lang].Add(id, new Dictionary<string, string>());
             if(!languages[lang][id].ContainsKey(attr)) languages[lang][id].Add(attr, value);
-        }
-
-        private void SetToolVersion()
-        {
-            System.Diagnostics.FileVersionInfo info = FileVersionInfo.GetVersionInfo(Path.Combine(convPath, "Knx.Ets.XmlSigning.dll"));
-            toolVersion = $"{info.FileVersion}.{info.FilePrivatePart}";
         }
 
         public bool ExportEts(ObservableCollection<PublishAction> _actions)
@@ -2261,68 +2249,17 @@ namespace Kaenx.Creator.Classes
             string manu = Directory.GetDirectories(path).First();
             manu = manu.Substring(manu.LastIndexOf('\\') + 1);
 
-            IDictionary<string, string> applProgIdMappings = new Dictionary<string, string>();
-            IDictionary<string, string> applProgHashes = new Dictionary<string, string>();
-            IDictionary<string, string> mapBaggageIdToFileIntegrity = new Dictionary<string, string>(50);
+            string etsPath = SignHelper.FindEtsPath(general.Application.NamespaceVersion);
+            Log($"Verwende ETS: {etsPath}");
 
-            FileInfo hwFileInfo = new FileInfo(Path.Combine(path, manu, "Hardware.xml"));
-            FileInfo catalogFileInfo = new FileInfo(Path.Combine(path, manu, "Catalog.xml"));
+            Task sign = Task.Run(() => {
+                SignHelper.SignFiles(path, manu);
+            });
+            await sign.WaitAsync(new CancellationTokenSource().Token);
             
-            int nsVersion = int.Parse(currentNamespace.Substring(currentNamespace.LastIndexOf('/')+1));;
-            foreach (string file in Directory.GetFiles(Path.Combine(path, manu)))
-            {
-                if (!file.Contains("M-") || !file.Contains("_A-")) continue;
-
-                FileInfo info = new FileInfo(file);
-                ApplicationProgramHasher aph = new ApplicationProgramHasher(info, mapBaggageIdToFileIntegrity, convPath, nsVersion, true);
-                aph.HashFile();
-
-                string oldApplProgId = aph.OldApplProgId;
-                string newApplProgId = aph.NewApplProgId;
-                string genHashString = aph.GeneratedHashString;
-
-                applProgIdMappings.Add(oldApplProgId, newApplProgId);
-                if (!applProgHashes.ContainsKey(newApplProgId))
-                    applProgHashes.Add(newApplProgId, genHashString);
-            }
-
-            HardwareSigner hws = new HardwareSigner(hwFileInfo, applProgIdMappings, applProgHashes, convPath, nsVersion, true);
-            hws.SignFile();
-            IDictionary<string, string> hardware2ProgramIdMapping = hws.OldNewIdMappings;
-
-            CatalogIdPatcher cip = new CatalogIdPatcher(catalogFileInfo, hardware2ProgramIdMapping, convPath, nsVersion);
-            cip.Patch();
-
-            if(!File.Exists(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "knx_master_" + nsVersion + ".xml")))
-            {
-                try{
-                    System.Net.Http.HttpClient client = new System.Net.Http.HttpClient();
-                    Stream down = await client.GetStreamAsync($"https://update.knx.org/data/XML/project-{nsVersion}/knx_master.xml");
-                    Stream file = File.OpenWrite(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", $"knx_master_{nsVersion}.xml"));
-                    await down.CopyToAsync(file);
-                    file.Close();
-                    file.Dispose();
-                    down.Close();
-                    down.Dispose();
-                } catch (Exception ex){
-                    // System.Windows.MessageBox.Show(ex.Message, "Fehler beim herunterladen");
-                    // if(ex.InnerException != null)
-                    //     System.Windows.MessageBox.Show(ex.InnerException.Message, "InnerException");
-                    throw new Exception("knx_master.xml konnte nicht herunter geladen werden.", ex);
-                }
-            }
-
-            File.Copy(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", $"knx_master_{nsVersion}.xml"), Path.Combine(path, "knx_master.xml"), true);
-
-            XmlSigning.SignDirectory(Path.Combine(path, manu), convPath);
-
             if(File.Exists(filePath))
                 File.Delete(filePath);
-            System.IO.Compression.ZipFile.CreateFromDirectory(path, filePath);
-
-            #if (!DEBUG)
-            System.IO.Directory.Delete(path, true);
-            #endif
+            SignHelper.ZipFolder(path, filePath);
         }
 
         public static string GetEncoded(string input)
@@ -2407,35 +2344,8 @@ namespace Kaenx.Creator.Classes
 
             XElement knx = new XElement(Get("KNX"));
             //this makes icons work...
-            knx.SetAttributeValue("CreatedBy", "knxconv");
-
-            /*int nsx = int.Parse(currentNamespace.Substring(currentNamespace.LastIndexOf("/")+1));
-            switch(nsx)
-            {
-                case 11:
-                    knx.SetAttributeValue("ToolVersion", "4.0.1997.50261");
-                    break;
-                case 12:
-                    knx.SetAttributeValue("ToolVersion", "5.0.204.12971");
-                    break;
-                case 13:
-                    knx.SetAttributeValue("ToolVersion", "5.1.84.17602");
-                    break;
-                case 14:
-                    knx.SetAttributeValue("ToolVersion", "5.6.241.33672");
-                    break;
-                case 20:
-                    knx.SetAttributeValue("ToolVersion", "5.7.617.38708");
-                    break;
-                case 21:
-                    knx.SetAttributeValue("ToolVersion", "5.7.617.38708");
-                    break;
-                case 22:
-                    knx.SetAttributeValue("ToolVersion", "6.1.5686.0");
-                    break;
-
-            }*/
-                    knx.SetAttributeValue("ToolVersion", toolVersion);
+            knx.SetAttributeValue("CreatedBy", "kaenx-creator");
+            knx.SetAttributeValue("ToolVersion", "1.0.0");
 
             doc = new XDocument(knx);
             doc.Root.Add(new XElement(Get("ManufacturerData"), xmanu));
