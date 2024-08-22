@@ -44,7 +44,6 @@ namespace Kaenx.Creator.Classes
             headerPath = hP;
         }
 
-
         string currentLang = "";
         private Dictionary<string, Dictionary<string, Dictionary<string, string>>> languages {get;set;} = null;
  
@@ -482,9 +481,7 @@ namespace Kaenx.Creator.Classes
             }
             #endregion
 
-
             xunderapp.Add(xextension);
-
 
             if(ver.IsMessagesActive && ver.Messages.Count > 0)
             {
@@ -539,10 +536,8 @@ namespace Kaenx.Creator.Classes
                 }
 
             }
-
             #endregion
 
-            
             #region Modules
 
             if(ver.Allocators.Count > 0)
@@ -565,8 +560,6 @@ namespace Kaenx.Creator.Classes
                     xallocs.Add(xalloc);
                 }
             }
-
-
 
             if(ver.Modules.Count > 0)
             {
@@ -659,7 +652,6 @@ namespace Kaenx.Creator.Classes
                     headers.AppendLine($"#define {item.Key}_KoBlockSize " + item.Value.size);
                 else
                     headers.AppendLine($"#define {item.Key}_KoBlockSize 0");
-                
             }
 
             headers.AppendLine();
@@ -669,13 +661,10 @@ namespace Kaenx.Creator.Classes
 
             System.IO.File.WriteAllText(headerPath, headers.ToString());
             headers = null;
-
             #endregion
-
 
             XElement xdyn = new XElement(Get("Dynamic"));
             HandleSubItems(ver.Dynamics[0], xdyn, ver);
-
 
             if(buttonScripts.Count > 0)
             {
@@ -686,7 +675,6 @@ namespace Kaenx.Creator.Classes
 
             if(string.IsNullOrEmpty(xscript.Value))
                 xscript.Remove();
-
 
             if(iconsApp.Count > 0)
             {
@@ -714,7 +702,6 @@ namespace Kaenx.Creator.Classes
                 xextension.Remove();
 
             xapp.Add(xdyn);
-
 
             #region Translations
             Log($"Exportiere Translations: {languages.Count} Sprachen");
@@ -824,7 +811,6 @@ namespace Kaenx.Creator.Classes
 
             foreach(Models.Translation trans in general.Info.Text) AddTranslation(trans.Language.CultureCode, pid, "Text", trans.Text);
 
-
             XElement xasso = new XElement(Get("Hardware2Programs"));
             xhard.Add(xasso);
 
@@ -896,7 +882,6 @@ namespace Kaenx.Creator.Classes
             Log($"Exportiere Translations: {languages.Count} Sprachen");
             xlanguages = new XElement(Get("Languages"));
             foreach(KeyValuePair<string, Dictionary<string, Dictionary<string, string>>> lang in languages) {
-                
                 XElement xlang = new XElement(Get("Language"));
                 xlang.SetAttributeValue("Identifier", lang.Key);
 
@@ -932,7 +917,6 @@ namespace Kaenx.Creator.Classes
             #endregion
         
             #region XML Baggages/Icons
-
             if(baggagesManu.Count > 0)
             {
                 Log("Exportiere Baggages");
@@ -990,8 +974,6 @@ namespace Kaenx.Creator.Classes
                 DateTime last = general.Icons.OrderByDescending(i => i.LastModified).First().LastModified;
                 File.SetLastWriteTime(GetRelPath("Temp", Manu, "Baggages", zipName), last);
             }
-            
-
             #endregion
 
             return true;
@@ -1061,7 +1043,6 @@ namespace Kaenx.Creator.Classes
                     xmod.Add(xunderstatic);
                     xunderapp.Add(xmod);
 
-
                     ExportParameters(ver, mod, xunderstatic, headers);
                     ExportParameterRefs(mod, xunderstatic);
                     ExportComObjects(ver, mod, xunderstatic, headers);
@@ -1124,7 +1105,6 @@ namespace Kaenx.Creator.Classes
                     System.IO.File.WriteAllText(GetRelPath("HelpTemp", trans.Language.CultureCode, text.Name + ".txt"), trans.Text);
                 }
             }
-
 
             if(!System.IO.Directory.Exists(GetRelPath("Temp", manu, "Baggages")))
                 System.IO.Directory.CreateDirectory(GetRelPath("Temp", manu, "Baggages"));
@@ -1417,7 +1397,6 @@ namespace Kaenx.Creator.Classes
                 id += $"_R-{cref.Id}";
                 xcref.SetAttributeValue("Id", id);
 
-
                 if(cref.OverwriteText) {
                     if(!cref.TranslationText)
                         foreach(Models.Translation trans in cref.Text) AddTranslation(trans.Language.CultureCode, id, "Text", trans.Text);
@@ -1452,7 +1431,6 @@ namespace Kaenx.Creator.Classes
                         xcref.SetAttributeValue("ObjectSize", cref.ObjectSize + " Bit");
                 }
 
-
                 if(vbase.IsComObjectRefAuto && cref.ComObjectObject.UseTextParameter)
                 {
                     int nsVersion = int.Parse(currentNamespace.Substring(currentNamespace.LastIndexOf('/')+1));
@@ -1463,7 +1441,6 @@ namespace Kaenx.Creator.Classes
                     int nsVersion = int.Parse(currentNamespace.Substring(currentNamespace.LastIndexOf('/')+1));
                     xcref.SetAttributeValue("TextParameterRefId", appVersionMod + (cref.ParameterRefObject.ParameterObject.IsInUnion ? "_UP-" : "_P-") + $"{cref.ParameterRefObject.ParameterObject.Id}_R-{cref.ParameterRefObject.Id}");    
                 }
-
 
                 if(cref.OverwriteFC)
                     xcref.SetAttributeValue("CommunicationFlag", cref.FlagComm ? "Enabled" : "Disabled");
@@ -1477,7 +1454,6 @@ namespace Kaenx.Creator.Classes
                     xcref.SetAttributeValue("UpdateFlag", cref.FlagUpdate ? "Enabled" : "Disabled");
                 if(cref.OverwriteFW)
                     xcref.SetAttributeValue("WriteFlag", cref.FlagWrite ? "Enabled" : "Disabled");
-                
 
                 xrefs.Add(xcref);
             }
@@ -1541,7 +1517,6 @@ namespace Kaenx.Creator.Classes
                 ulong mask = 0;
                 for(int i = 0; i < para.ParameterTypeObject.SizeInBit; i++)
                     mask += (ulong)Math.Pow(2, i);
-                    
 
                 string paraAccess = $"{lineStart.Split(' ')[0]} Param{prefixName}";
                 string paraKnxGet = "";
@@ -1780,7 +1755,6 @@ namespace Kaenx.Creator.Classes
             return Convert.ToBase64String(data); 
         }
 
-
         #region Create Dyn Stuff
 
         private void HandleSubItems(IDynItems parent, XElement xparent, AppVersion ver = null)
@@ -1845,7 +1819,6 @@ namespace Kaenx.Creator.Classes
             }
         }
 
-
         private int channelCounter = 1;
         private XElement Handle(IDynItems ch, XElement parent)
         {
@@ -1869,7 +1842,6 @@ namespace Kaenx.Creator.Classes
                 channel.SetAttributeValue("Id", $"{appVersionMod}_CH-{dch.Number}");
                 channel.SetAttributeValue("Name", ch.Name);
 
-                
                 if(dch.UseIcon)
                 {
                     channel.SetAttributeValue("Icon", dch.IconObject.Name);
@@ -1880,7 +1852,6 @@ namespace Kaenx.Creator.Classes
                 if(dch.Access != ParamAccess.ReadWrite)
                     channel.SetAttributeValue("Access", dch.Access.ToString());
             }
-
 
             return channel;
         }
@@ -2151,7 +2122,6 @@ namespace Kaenx.Creator.Classes
             if (db.UseTextParameter)
                 xbtn.SetAttributeValue("TextParameterRefId", appVersionMod + (db.TextRefObject.ParameterObject.IsInUnion ? "_UP-" : "_P-") + $"{db.TextRefObject.ParameterObject.Id}_R-{db.TextRefObject.Id}");
 
-
             parent.Add(xbtn);
 
             if(!db.TranslationText)
@@ -2165,7 +2135,6 @@ namespace Kaenx.Creator.Classes
             function += "\r\n}\r\n";
             buttonScripts.Add(function);
         }
-
         #endregion
 
         private bool CheckSections(CatalogItem parent)
