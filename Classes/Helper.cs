@@ -20,9 +20,9 @@ namespace Kaenx.Creator.Classes
         private static Dictionary<long, ComObject> Coms;
         private static Dictionary<long, ComObjectRef> ComRefs;
 
-        public static bool CheckExportNamespace(int ns)
+        public static bool CheckExportNamespace(int ns, bool silent = false)
         {
-            return !string.IsNullOrEmpty(SignHelper.FindEtsPath(ns));
+            return !string.IsNullOrEmpty(SignHelper.FindEtsPath(ns, silent));
         }
 
         public static string CheckImportVersion(string json, int version)

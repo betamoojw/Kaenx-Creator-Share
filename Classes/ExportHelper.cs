@@ -25,22 +25,19 @@ namespace Kaenx.Creator.Classes
         string appVersion;
         string appVersionMod;
         string currentNamespace;
-        string filePath;
         string headerPath;
         List<Icon> iconsApp = new List<Icon>();
         List<string> buttonScripts;
         ObservableCollection<PublishAction> actions;
 
-        public ExportHelper(MainModel g, string fP)
+        public ExportHelper(MainModel g)
         {
             general = g;
-            filePath = fP;
         }
 
-        public ExportHelper(MainModel g, string fP, string hP)
+        public ExportHelper(MainModel g, string hP)
         {
             general = g;
-            filePath = fP;
             headerPath = hP;
         }
 
@@ -1900,7 +1897,6 @@ namespace Kaenx.Creator.Classes
         }
 
         private int separatorCounter = 1;
-
         private void HandleSep(DynSeparator sep, XElement parent)
         {
             XElement xsep = new XElement(Get("ParameterSeparator"));
@@ -2092,7 +2088,6 @@ namespace Kaenx.Creator.Classes
         }
 
         int btnCounter = 1;
-
         private void HandleButton(DynButton db, XElement parent)
         {
             XElement xbtn = new XElement(Get("Button"));
@@ -2213,12 +2208,12 @@ namespace Kaenx.Creator.Classes
             }
         }
 
-        public async Task SignOutput(string path)
+        public async Task SignOutput(string path, string filePath, bool silent = false)
         {
             string manu = Directory.GetDirectories(path).First();
             manu = manu.Substring(manu.LastIndexOf('\\') + 1);
 
-            string etsPath = SignHelper.FindEtsPath(general.Application.NamespaceVersion);
+            string etsPath = SignHelper.FindEtsPath(general.Application.NamespaceVersion, silent);
             Log($"Verwende ETS: {etsPath}");
 
             Task sign = Task.Run(() => {
@@ -2289,7 +2284,7 @@ namespace Kaenx.Creator.Classes
             return System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Output");
         }
 
-        private XName Get(string name)
+        public XName Get(string name)
         {
             return XName.Get(name, currentNamespace);
         }
@@ -2306,7 +2301,7 @@ namespace Kaenx.Creator.Classes
                 actions.Add(new() { Text = $"       {message}"});
         }
 
-        private XElement CreateNewXML(string manu)
+        public XElement CreateNewXML(string manu)
         {
             XElement xmanu = new XElement(Get("Manufacturer"));
             xmanu.SetAttributeValue("RefId", manu);
