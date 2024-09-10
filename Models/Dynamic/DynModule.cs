@@ -15,6 +15,14 @@ namespace Kaenx.Creator.Models.Dynamic
         public IDynItems Parent { get; set; }
         public bool IsExpanded { get; set; }
 
+        private bool _isSelected = false;
+        [JsonIgnore]
+        public bool IsSelected
+        {
+            get { return _isSelected; }
+            set { _isSelected = value; Changed("IsSelected"); }
+        }
+
         private int _id = -1;
         public int Id
         {

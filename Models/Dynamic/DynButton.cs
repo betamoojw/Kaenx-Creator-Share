@@ -14,6 +14,14 @@ namespace Kaenx.Creator.Models.Dynamic
         public IDynItems Parent { get; set; }
         public bool IsExpanded { get; set; }
 
+        private bool _isSelected = false;
+        [JsonIgnore]
+        public bool IsSelected
+        {
+            get { return _isSelected; }
+            set { _isSelected = value; Changed("IsSelected"); }
+        }
+
         public string Online { get; set; } = "";
         public string EventHandlerParameters { get; set; }
         public string Cell { get; set; }

@@ -11,6 +11,7 @@ namespace Kaenx.Creator.Models.Dynamic
         public string Name { get; set; }
         public ObservableCollection<IDynItems> Items { get; set; }
         public bool IsExpanded { get; set; }
+        public bool IsSelected { get; set; }
         public IDynItems Copy();
     }
 }

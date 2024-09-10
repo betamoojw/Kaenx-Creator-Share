@@ -20,6 +20,14 @@ namespace Kaenx.Creator.Models.Dynamic
             set { _isExpanded = value; Changed("IsExpanded"); }
         }
 
+        private bool _isSelected = false;
+        [JsonIgnore]
+        public bool IsSelected
+        {
+            get { return _isSelected; }
+            set { _isSelected = value; Changed("IsSelected"); }
+        }
+
         private string _name = "";
         public string Name
         {
