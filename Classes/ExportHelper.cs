@@ -467,8 +467,7 @@ namespace Kaenx.Creator.Classes
                         {
                             if(xele.Attribute("ObjIdx").Value == "0" && xele.Attribute("PropId").Value == "12")
                                 xele.Attribute("InlineData").Value = GetManuId();
-                                
-                            if(xele.Attribute("ObjIdx").Value == "0" && xele.Attribute("PropId").Value == "78")
+                            if(general.IsOpenKnx && xele.Attribute("ObjIdx").Value == "0" && xele.Attribute("PropId").Value == "78")
                                 xele.Attribute("InlineData").Value = $"0000{general.ManufacturerId:X2}{general.Info.AppNumber:X2}{general.Application.Number:X2}00";
                             break;
                         }
