@@ -2208,13 +2208,13 @@ namespace Kaenx.Creator.Classes
             }
         }
 
-        public async Task SignOutput(string path, string filePath, bool silent = false)
+        public async Task SignOutput(string path, string filePath, int namespaceversion, bool silent = false)
         {
             string manu = Directory.GetDirectories(path).First();
             manu = manu.Substring(manu.LastIndexOf('\\') + 1);
 
-            string etsPath = SignHelper.FindEtsPath(general.Application.NamespaceVersion, silent);
-            Log($"Verwende ETS: {etsPath}");
+            string etsPath = SignHelper.FindEtsPath(namespaceversion, silent);
+            //Log($"Verwende ETS: {etsPath}");
 
             Task sign = Task.Run(() => {
                 SignHelper.SignFiles(path, manu);
