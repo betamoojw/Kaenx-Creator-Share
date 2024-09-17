@@ -17,6 +17,7 @@ namespace Kaenx.Creator.Models
         public MemoryTypes Memory { get; set; }
         public ProcedureTypes Procedure { get; set; }
         public List<Procedure> Procedures {get;set;} = new List<Procedure>();
+        public string ManagementModel {get; set; }
 
         public string MediumTypes { get; set; } = "";
         public string Mediums {

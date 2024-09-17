@@ -1147,7 +1147,29 @@ namespace Kaenx.Creator.Classes
                         xmem.SetAttributeValue("Id", id);
                         xmem.SetAttributeValue("Address", mem.Address);
                         xmem.SetAttributeValue("Size", mem.Size);
-                        //xmem.Add(new XElement(Get("Data"), "Hier kommt toller Base64 String hin"));
+                        if(ver.ComObjectMemoryObject == mem){
+
+                            
+                            byte[] groupObjectTableData = CalculateGroupObjectTable(ver);
+                            byte[] segmentData = new byte[ver.ComObjectMemoryObject.Size];
+                            for(int i = 0; i < ver.ComObjectTableOffset; i++) {
+                                segmentData[i] = 0;
+                            }
+                            // check if the GroupObjectTable at Offset will fit into the data section
+                            if(ver.ComObjectTableOffset + groupObjectTableData.Length <= ver.ComObjectMemoryObject.Size) {
+                                groupObjectTableData.CopyTo(segmentData, ver.ComObjectTableOffset);
+                                if(general.Info.Mask.ManagementModel == "Bcu1"){
+                                    // if the ManagementModel is BCU1 the first Byte has to contain the size of the data section
+                                    segmentData[0] = (byte)(ver.ComObjectMemoryObject.Size - 1); 
+                                    // the next data bytes will be transferred from ETS to the specified addresses in the BCU1
+                                    //segmentData[14] = 0x60; // Byte 0x010E of the BCU1 (Routing-count constant)
+                                    //segmentData[15] = 0x63; // Byte 0x010F of the BCU1 (INAK-Retransmit-Limit | BUSY-Retransmit-Limit)
+                                    //segmentData[16] = 0xef; // Byte 0x0110 of the BCU1 (Configuration Descriptor)
+                                    segmentData[18] = (byte)ver.ComObjectTableOffset; // Byte 0x0112 of the BCU1 (Pointer to Communication Object Table)
+                                }
+                            }
+                            xmem.Add(new XElement(Get("Data"), System.Convert.ToBase64String(segmentData)));
+                        }
                         break;
 
                     case MemoryTypes.Relative:
@@ -1165,6 +1187,141 @@ namespace Kaenx.Creator.Classes
                 codes.Add(xmem);
             }
             xparent.Add(codes);
+        }
+
+        private byte[] CalculateGroupObjectTable(AppVersion ver)
+        {
+            uint dataPtrSize;
+            if(general.Info.Mask.ManagementModel == "Bcu1")
+            {
+                dataPtrSize = 1;
+            }
+            else //BCU2, BIM112
+            {
+                dataPtrSize = 2;
+            }
+
+            byte[] data = new byte[1 + dataPtrSize];
+
+            int ramPointer = 0;
+
+            // den Start des User RAM Bereichs festlegen (aus der sblib übernommen)
+            if (general.Info.Mask.ManagementModel == "Bcu1" ||
+                general.Info.Mask.ManagementModel == "Bcu2")
+            {
+                ramPointer = 0x00; // USER_RAM_START_DEFAULT bei BCU1, BCU2 = 0
+            }
+            else // BIM112
+            {
+                ramPointer = 0x5FC; // USER_RAM_START_DEFAULT bei BIM112 = 0x5FC
+            }
+
+            // wir legen die RAM-Flags-Table an den Anfang des User-RAMs
+            if (general.Info.Mask.ManagementModel == "Bcu1")
+            {
+                data[1] = (byte)ramPointer; // RAM-Flags-Table Pointer
+            }
+            else //BCU2, BIM112
+            {
+                data[1] = (byte)(ramPointer >> 8); // RAM-Flags-Table Pointer
+                data[2] = (byte)ramPointer; // RAM-Flags-Table Pointer
+            }
+
+            // Die höchste Nummer der Kommunikationsobjekte holen (Die Anzal der Tabelleneinträge ist gleich der höchsten Nummer)
+            // da das erste Kommunikationsobjekt die Nummer 0 hat, muss +1 addiert werden
+            int numberOfComObjects = 0;
+            foreach(ComObject comObject in ver.ComObjects){
+                if(comObject.Number > numberOfComObjects){
+                    numberOfComObjects = comObject.Number;
+                }
+            }
+            numberOfComObjects += 1;
+            
+            // den RAM Pointer um die Anzahl der Kommunikationsobjekte erhöhen, da die Flags-Table pro Kommunikationsobjekt ein Byte Platz benötigt
+            ramPointer += numberOfComObjects;
+
+            // die Größe der Tabelle steht im ersten Byte (Anzahl der ComObjekte)
+            data[0] = (byte)(numberOfComObjects); 
+
+            for (uint comObjectNumberCounter = 0; comObjectNumberCounter < numberOfComObjects; comObjectNumberCounter++)
+            {
+                ComObject comObject = ver.ComObjects.ToList().Find(x => x.Number == comObjectNumberCounter);
+                if (comObject != null)
+                {
+                    byte configByte = CreateConfigByte(comObject, general.Info.Mask.ManagementModel);
+                    byte typeByte = CreateTypeByte(comObject);
+
+                    // Berechnen der Stelle des GroupObject Descriptors im Data Segment
+                    uint descriptorPointer = (comObjectNumberCounter * (dataPtrSize + 2)) + dataPtrSize + 1;
+
+                    if (dataPtrSize == 1) // BCU1
+                    {
+                        Array.Resize(ref data, (int)descriptorPointer + 3);
+                        data[descriptorPointer] = (byte)ramPointer;
+                        data[descriptorPointer + 1] = configByte;
+                        data[descriptorPointer + 2] = typeByte;
+                    }
+                    else // BCU2, BIM112
+                    {
+                        Array.Resize(ref data, (int)descriptorPointer + 4);
+                        data[descriptorPointer] = (byte)(ramPointer >> 8);
+                        data[descriptorPointer + 1] = (byte)ramPointer;
+                        data[descriptorPointer + 2] = configByte;
+                        data[descriptorPointer + 3] = typeByte;
+                    }
+
+                    if(comObject.ObjectSize < 8){
+                        ramPointer += 1;
+                    }else{
+                        byte amountBytes = (byte)(comObject.ObjectSize / 8);
+                        ramPointer += amountBytes;
+                    }
+                }
+            }
+            return data;
+        }
+
+         private static byte CreateConfigByte(ComObject comObject, string managementModel)
+        {
+            byte configByte = 0;
+
+            if(managementModel == "Bcu1"){
+                configByte |= (1 << 7); // bei den Masken 0x0010, 0x0011 und 0x0012 ist das 7. Bit immer 1
+            }else if(comObject.FlagUpdate)
+            {
+                configByte |= (1 << 7);
+            }
+
+            if (comObject.FlagTrans)
+                configByte |= (1 << 6);
+
+            if (comObject.FlagWrite)
+                configByte |= (1 << 4);
+
+            if (comObject.FlagRead)
+                configByte |= (1 << 3);
+
+            if (comObject.FlagComm)
+                configByte |= (1 << 2);
+
+            // Bit 0 und 1 im config Byte geben die Priorität an
+            configByte |= (byte)0x3; // low priority
+
+            return configByte;
+        }
+
+        private static byte CreateTypeByte(ComObject comObject)
+        {
+            byte typeByte = 0;
+
+            if(comObject.ObjectSize < 8){
+                typeByte = (byte)(comObject.ObjectSize - 1);
+            }else{
+                byte amountBytes = (byte)(comObject.ObjectSize / 8);
+                typeByte = (byte)(amountBytes + 6);
+            }
+
+            return typeByte;
         }
 
         private void ExportParameters(AppVersion ver, IVersionBase vbase, XElement xparent, StringBuilder headers)

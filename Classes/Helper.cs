@@ -373,6 +373,7 @@ namespace Kaenx.Creator.Classes
                 Models.MaskVersion mask = new Models.MaskVersion();
                 mask.Id = xmask.Attribute("Id").Value;
                 mask.MediumTypes = xmask.Attribute("MediumTypeRefId").Value;
+                mask.ManagementModel = xmask.Attribute("ManagementModel").Value;
                 if(xmask.Attribute("OtherMediumTypeRefId") != null) mask.MediumTypes += " " + xmask.Attribute("OtherMediumTypeRefId").Value;
 
                 string eleStr = xmask.ToString();
