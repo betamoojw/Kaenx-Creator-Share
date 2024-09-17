@@ -67,6 +67,10 @@ namespace Kaenx.Creator.Models
                     case MemoryByteUsage.Module:
                         fillColor.Add(4);
                         continue;
+                    
+                    case MemoryByteUsage.Bcu1Data:
+                        fillColor.Add(5);
+                        continue;
                 }
                 
                 if(mbyte.UnionList.Count > 0)

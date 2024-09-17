@@ -188,6 +188,7 @@ namespace Kaenx.Creator.Models
         GroupAddress,
         Association,
         Coms,
-        Module
+        Module,
+        Bcu1Data
     }
 }

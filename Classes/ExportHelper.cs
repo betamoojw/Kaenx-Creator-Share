@@ -1135,7 +1135,7 @@ namespace Kaenx.Creator.Classes
             foreach (Memory mem in ver.Memories)
             {
                 if(mem.IsAutoPara)
-                    MemoryHelper.MemoryCalculation(ver, mem);
+                    MemoryHelper.MemoryCalculation(general, mem);
                     
                 XElement xmem = null;
                 string id = "";

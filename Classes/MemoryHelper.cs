@@ -5,7 +5,7 @@ namespace Kaenx.Creator.Classes
 {
     public class MemoryHelper
     {
-        public static void MemoryCalculation(AppVersion ver, Memory mem)
+        public static void MemoryCalculation(MainModel general, Memory mem)
         {
             mem.Sections.Clear();
 
@@ -17,7 +17,7 @@ namespace Kaenx.Creator.Classes
                 mem.Address = 0;
             }
 
-            foreach(Module mod in ver.Modules)
+            foreach(Module mod in general.Application.Modules)
                 ClearModuleMemory(mod);
 
             if(!mem.IsAutoSize)
@@ -25,14 +25,16 @@ namespace Kaenx.Creator.Classes
 
             if(mem.Type == MemoryTypes.Absolute)
             {
-                if(ver.AddressMemoryObject == mem)
-                    MemoryCalculationGroups(ver, mem);
-                if(ver.AssociationMemoryObject == mem)
-                    MemoryCalculationAssocs(ver, mem);
-                if(ver.ComObjectMemoryObject == mem)
-                    MemoryCalculationComs(ver, mem);
+                if(general.Application.AddressMemoryObject == mem)
+                    MemoryCalculationGroups(general.Application, mem);
+                if(general.Application.AssociationMemoryObject == mem)
+                    MemoryCalculationAssocs(general.Application, mem);
+                if(general.Application.ComObjectMemoryObject == mem)
+                    MemoryCalculationComs(general, mem);
+                if(general.Info.Mask.ManagementModel == "Bcu1")
+                    mem.SetBytesUsed(MemoryByteUsage.Bcu1Data, 19, 0);
             }
-            MemoryCalculationRegular(ver, mem);
+            MemoryCalculationRegular(general.Application, mem);
         }
 
         private static void ClearModuleMemory(Module mod)
@@ -60,13 +62,24 @@ namespace Kaenx.Creator.Classes
             mem.SetBytesUsed(MemoryByteUsage.Association, maxSize, ver.AssociationTableOffset);
         }
 
-        private static void MemoryCalculationComs(AppVersion ver, Memory mem)
+        private static void MemoryCalculationComs(MainModel general, Memory mem)
         {
-
-            int maxSize = (ver.ComObjects.Count * 3) + 2;
-            if(mem.IsAutoSize && (maxSize + ver.ComObjectTableOffset) > mem.GetCount())
-                mem.AddBytes((maxSize + ver.ComObjectTableOffset) - mem.GetCount());
-            mem.SetBytesUsed(MemoryByteUsage.Coms, maxSize, ver.ComObjectTableOffset);
+            int groupObjDecsriptorSize = 0;
+            int ramFlagsTablePointerSize = 0;
+            // Referring to KNX document "03_05_01 Resources" chapter 4.12
+            if(general.Info.Mask.ManagementModel == "Bcu1") {
+                groupObjDecsriptorSize = 3;
+                ramFlagsTablePointerSize = 1;
+            }else {
+                groupObjDecsriptorSize = 4;
+                ramFlagsTablePointerSize = 2;
+            }
+            
+            // Add 1 Byte for current size of GroupObjectTable (amount of Com Objects)
+            int maxSize = (general.Application.ComObjects.Count * groupObjDecsriptorSize) + ramFlagsTablePointerSize + 1;
+            if(mem.IsAutoSize && (maxSize + general.Application.ComObjectTableOffset) > mem.GetCount())
+                mem.AddBytes((maxSize + general.Application.ComObjectTableOffset) - mem.GetCount());
+            mem.SetBytesUsed(MemoryByteUsage.Coms, maxSize, general.Application.ComObjectTableOffset);
         }
 
         private static void MemCalcStatics(IVersionBase vbase, Memory mem, int memId)
