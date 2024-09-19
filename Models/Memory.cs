@@ -144,7 +144,7 @@ namespace Kaenx.Creator.Models
                     int byteIndex = paraAddr - secAddr;
                     sec.Bytes[byteIndex].SetByteUsed(usage, usedBy);
                 }catch(InvalidOperationException ex){
-                    throw new OutOfMemoryException("bytes_used_outside_of_memory", ex);
+                    throw new OutOfMemoryException("There are data or table bytes outside the memory area", ex);
                 }
             }
         }
