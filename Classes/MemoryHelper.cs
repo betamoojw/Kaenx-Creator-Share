@@ -32,7 +32,7 @@ namespace Kaenx.Creator.Classes
                 if(general.Application.ComObjectMemoryObject == mem)
                     MemoryCalculationComs(general, mem);
                 if(general.Info.Mask.ManagementModel == "Bcu1")
-                    mem.SetBytesUsed(MemoryByteUsage.Bcu1Data, 19, 0);
+                    mem.SetBytesUsed(MemoryByteUsage.Bcu1Data, 22, 0);
             }
             MemoryCalculationRegular(general.Application, mem);
         }

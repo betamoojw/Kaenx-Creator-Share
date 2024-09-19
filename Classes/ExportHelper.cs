@@ -1162,10 +1162,14 @@ namespace Kaenx.Creator.Classes
                                     // if the ManagementModel is BCU1 the first Byte has to contain the size of the data section
                                     segmentData[0] = (byte)(ver.ComObjectMemoryObject.Size - 1); 
                                     // the next data bytes will be transferred from ETS to the specified addresses in the BCU1
-                                    //segmentData[14] = 0x60; // Byte 0x010E of the BCU1 (Routing-count constant)
-                                    //segmentData[15] = 0x63; // Byte 0x010F of the BCU1 (INAK-Retransmit-Limit | BUSY-Retransmit-Limit)
-                                    //segmentData[16] = 0xef; // Byte 0x0110 of the BCU1 (Configuration Descriptor)
+                                    //segmentData[14]  // Byte 0x010E of the BCU1 (Routing-count constant)
+                                    //segmentData[15]  // Byte 0x010F of the BCU1 (INAK-Retransmit-Limit | BUSY-Retransmit-Limit)
+                                    //segmentData[16]  // Byte 0x0110 of the BCU1 (Configuration Descriptor)
+                                    //segmentData[17]  // Byte 0x0111 of the BCU1 (Pointer to Association Table) -> is calculated automatically by ETS 
                                     segmentData[18] = (byte)ver.ComObjectTableOffset; // Byte 0x0112 of the BCU1 (Pointer to Communication Object Table)
+                                    //segmentData[19]  // Byte 0x0113 of the BCU1 (Pointer to USER Initialization Routine)
+                                    //segmentData[20]  // Byte 0x0114 of the BCU1 (Pointer to USER Program)
+                                    //segmentData[21]  // Byte 0x0115 of the BCU1 (Pointer to USER Save Program)
                                 }
                             }
                             xmem.Add(new XElement(Get("Data"), System.Convert.ToBase64String(segmentData)));
