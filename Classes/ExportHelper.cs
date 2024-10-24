@@ -1790,7 +1790,7 @@ namespace Kaenx.Creator.Classes
                     }
 
                     default:
-                        throw new NotImplementedException("Export Parameter ParameterTyp wird nicht unterstützt.");
+                        throw new NotImplementedException($"Export Parameter ParameterTyp '{para.ParameterTypeObject.Type.ToString()} wird nicht unterstützt.");
                 }
                 
                 string offsetOut = offset.ToString();
@@ -2377,7 +2377,7 @@ namespace Kaenx.Creator.Classes
             //Log($"Verwende ETS: {etsPath}");
 
             Task sign = Task.Run(() => {
-                SignHelper.SignFiles(path, manu);
+                SignHelper.SignFiles(path, manu, namespaceversion);
             });
             await sign.WaitAsync(new CancellationTokenSource().Token);
             
