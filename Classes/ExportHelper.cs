@@ -1799,7 +1799,7 @@ namespace Kaenx.Creator.Classes
                     }
 
                     default:
-                        throw new NotImplementedException("Export Parameter ParameterTyp wird nicht unterstützt.");
+                        throw new NotImplementedException($"Export Parameter ParameterTyp '{para.ParameterTypeObject.Type.ToString()} wird nicht unterstützt.");
                 }
                 
                 string offsetOut = offset.ToString();
