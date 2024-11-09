@@ -655,7 +655,15 @@ namespace Kaenx.Creator.Classes
             ExportModules(xapp, ver, ver, appVersion, headers, appVersion);
             appVersionMod = appVersion;
 
-            System.IO.File.WriteAllText(headerPath, headers.ToString());
+            string headersString = headers.ToString();
+            if(general.ManufacturerId == 0x02DC)
+            {
+                headersString = headersString.Replace("knx.paramBit", "knx_memory_param_bit");
+                headersString = headersString.Replace("knx.paramByte", "knx_memory_param_byte");
+                headersString = headersString.Replace("knx.paramFloat", "knx_memory_param_float");
+                headersString = headersString.Replace("knx.getGroupObject", "");
+            }
+            System.IO.File.WriteAllText(headerPath, headersString);
             headers = null;
             #endregion
 
@@ -1684,7 +1692,8 @@ namespace Kaenx.Creator.Classes
                     case ParameterTypes.NumberInt:
                     case ParameterTypes.Enum:
                     {
-                        string ptype = "(uint)";
+                        string ptype = "(uint32_t)";
+
                         if(para.ParameterTypeObject.Type == ParameterTypes.NumberInt)
                         {
                             if(para.ParameterTypeObject.SizeInBit <= 8)
@@ -1693,7 +1702,7 @@ namespace Kaenx.Creator.Classes
                                 ptype = "(int16_t)";
                             else if(para.ParameterTypeObject.SizeInBit <= 32)
                                 ptype = "(int32_t)";
-                            
+
                             if(para.ParameterTypeObject.SizeInBit % 8 != 0)
                                 throw new Exception("Aktuell sind als Größe von NumberInt nur 8, 16 und 32 möglich");
 
@@ -2377,7 +2386,7 @@ namespace Kaenx.Creator.Classes
             //Log($"Verwende ETS: {etsPath}");
 
             Task sign = Task.Run(() => {
-                SignHelper.SignFiles(path, manu);
+                SignHelper.SignFiles(path, manu, namespaceversion);
             });
             await sign.WaitAsync(new CancellationTokenSource().Token);
             

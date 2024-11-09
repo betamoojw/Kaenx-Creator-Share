@@ -610,7 +610,7 @@ namespace Kaenx.Creator.Classes
                         break;
 
                     case Models.Dynamic.DynParameter dp:
-                        if (dp._parameter != -1)
+                        if (dp._parameter != -1 && ParaRefs.ContainsKey(dp._parameter))
                             dp.ParameterRefObject = ParaRefs[dp._parameter];
                         if(dp.HasHelptext)
                             dp.Helptext = general.Application.Helptexts.FirstOrDefault(p => p.UId == dp._helptextId);
