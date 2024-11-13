@@ -1908,6 +1908,18 @@ namespace Kaenx.Creator.Classes
             else if(para.ParameterTypeObject.Type == ParameterTypes.RawData)
             {
                 xpara.SetAttributeValue("Value", ConvertHexStringToBas64(para.Value));
+            }
+            else if(para.ParameterTypeObject.Type == ParameterTypes.Float_DPT9 ||
+                para.ParameterTypeObject.Type == ParameterTypes.Float_IEEE_Single ||
+                para.ParameterTypeObject.Type == ParameterTypes.Float_IEEE_Double) {
+                float temp_float = float.Parse(para.Value);
+                string value = temp_float.ToString("E").Replace(",", ".");
+                int to_short = 22 - value.Length;
+                string add = "";
+                for(int i = 0; i < to_short; i++)
+                    add += "0";
+                value = value.Replace("E", add + "E");
+                xpara.SetAttributeValue("Value", value);
             } else {
                 xpara.SetAttributeValue("Value", para.Value);
             }
