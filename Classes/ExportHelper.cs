@@ -1040,7 +1040,13 @@ namespace Kaenx.Creator.Classes
                         arg.ExportHelper = $"{mod.ExportHelper}_A-{arg.Id}";
                         xarg.SetAttributeValue("Id", arg.ExportHelper);
                         xarg.SetAttributeValue("Name", arg.Name);
-                        xarg.SetAttributeValue("Allocates", arg.Allocates);
+                        if(arg.Type == ArgumentTypes.Text)
+                        {
+                            xarg.SetAttributeValue("Type", "Text");
+                        } else
+                        {
+                            xarg.SetAttributeValue("Allocates", arg.Allocates);
+                        }
                         temp.Add(xarg);
                     }
                     XElement xunderstatic = new XElement(Get("Static"));
