@@ -111,6 +111,14 @@ namespace Kaenx.Creator.Classes
             {
                 xapp.SetAttributeValue("AdditionalAddressesCount", ver.BusInterfaceCounter);
             }
+            if(ver.IsSecureActive)
+            {
+                xapp.SetAttributeValue("IsSecureEnabled", "true");
+                if(ver.IsBusInterfaceActive)
+                {
+                    xapp.SetAttributeValue("MaxUserEntries", "1");
+                }
+            }
 
             buttonScripts = new List<string>();
             iconsApp = new List<Icon>();
