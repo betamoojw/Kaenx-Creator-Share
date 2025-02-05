@@ -52,7 +52,6 @@ namespace Kaenx.Creator.Models
         }
 
         public ObservableCollection<CatalogItem> Catalog { get; set; } = new ObservableCollection<CatalogItem>();
-        public ObservableCollection<Language> Languages { get; set; } = new ObservableCollection<Language>();
         public ObservableCollection<Baggage> Baggages { get; set; } = new ObservableCollection<Baggage>();
         public ObservableCollection<Icon> Icons { get; set; } = new ObservableCollection<Icon>();
 

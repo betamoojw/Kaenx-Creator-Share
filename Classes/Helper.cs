@@ -258,7 +258,6 @@ namespace Kaenx.Creator.Classes
                 Icons = general.Icons,
                 ImportVersion = general.ImportVersion,
                 IsOpenKnx = general.IsOpenKnx,
-                Languages = general.Languages,
                 ManufacturerId = general.ManufacturerId,
                 ProjectName = general.ProjectName
             };
