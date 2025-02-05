@@ -237,6 +237,13 @@ namespace Kaenx.Creator.Models
             get { return _isBusInterfaceActive; }
             set { _isBusInterfaceActive = value; Changed("IsBusInterfaceActive"); }
         }
+        
+        private bool _isSecureActive = false;
+        public bool IsSecureActive
+        {
+            get { return _isSecureActive; }
+            set { _isSecureActive = value; Changed("IsSecureActive"); }
+        }
 
         public bool HasBusInterfaceRouter { get; set; }
         public int BusInterfaceCounter { get; set; } = 4;

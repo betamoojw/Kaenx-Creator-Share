@@ -111,6 +111,14 @@ namespace Kaenx.Creator.Classes
             {
                 xapp.SetAttributeValue("AdditionalAddressesCount", ver.BusInterfaceCounter);
             }
+            if(ver.IsSecureActive)
+            {
+                xapp.SetAttributeValue("IsSecureEnabled", "true");
+                if(ver.IsBusInterfaceActive)
+                {
+                    xapp.SetAttributeValue("MaxUserEntries", "1");
+                }
+            }
 
             buttonScripts = new List<string>();
             iconsApp = new List<Icon>();
@@ -2395,12 +2403,12 @@ namespace Kaenx.Creator.Classes
             }
         }
 
-        public async Task SignOutput(string path, string filePath, int namespaceversion, bool silent = false)
+        public async Task SignOutput(string path, string filePath, int namespaceversion)
         {
             string manu = Directory.GetDirectories(path).First();
             manu = manu.Substring(manu.LastIndexOf('\\') + 1);
 
-            string etsPath = SignHelper.FindEtsPath(namespaceversion, silent);
+            string etsPath = SignHelper.FindEtsPath(namespaceversion);
             //Log($"Verwende ETS: {etsPath}");
 
             Task sign = Task.Run(() => {
