@@ -969,6 +969,7 @@ namespace Kaenx.Creator.Classes
 
             if(exportIcons)
             {
+                Log("Exportiere Icons");
                 string zipName = "Icons_" + general.GetGuid() + ".zip";
                 using (var stream = new FileStream(GetRelPath("Temp", Manu, "Baggages", zipName), FileMode.Create))
                     using (var archive = new ZipArchive(stream , ZipArchiveMode.Create, false,  System.Text.Encoding.GetEncoding(850)))
@@ -988,6 +989,7 @@ namespace Kaenx.Creator.Classes
             }
             #endregion
 
+            Log("Export beendet");
             return true;
         }
 
