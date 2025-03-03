@@ -13,7 +13,13 @@ namespace Kaenx.Creator.Models
         private string _guid = "";
         public string Guid
         {
-            get { return _guid; }
+            get {
+                if(string.IsNullOrEmpty(_guid))
+                {
+                    _guid = System.Guid.NewGuid().ToString();
+                }
+                return _guid; 
+            }
             set { _guid = value; Changed("Guid"); }
         }
 
