@@ -1814,6 +1814,12 @@ namespace Kaenx.Creator.Classes
                         break;
                     }
 
+                    case ParameterTypes.IpAddress:
+                    {
+                        paraKnxGet += "knx.paramInt(%off%)";
+                        break;
+                    }
+
                     default:
                         throw new NotImplementedException($"Export Parameter ParameterTyp '{para.ParameterTypeObject.Type.ToString()} wird nicht unterstützt.");
                 }
