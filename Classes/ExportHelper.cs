@@ -757,7 +757,7 @@ namespace Kaenx.Creator.Classes
 
                 doc2.Validate(schemas, (o, e) => {
                     Log($"Fehler beim Validieren! Zeile {e.Exception.LineNumber}:{e.Exception.LinePosition}\r\n--->{e.Message}\r\n--->({o})");
-                    actions.Insert(0, new PublishAction() { Text = $"    Fehler beim Validieren! Zeile {e.Exception.LineNumber}:{e.Exception.LinePosition} -> {e.Message} ({o})", State = PublishState.Fail});
+                    actions.Add(new PublishAction() { Text = $"    Fehler beim Validieren! Zeile {e.Exception.LineNumber}:{e.Exception.LinePosition} -> {e.Message} ({o})", State = PublishState.Fail});
                     flag = true;
                 });
 
