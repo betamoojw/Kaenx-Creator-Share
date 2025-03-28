@@ -164,7 +164,7 @@ namespace Kaenx.Creator.Models
         {
             get { return _type; }
             set { 
-                if (value == null) return;
+                if (!HasDpt || value == null) return;
                 ObjectSize = value.Size;
                 _type = value; Changed("Type"); 
             }
