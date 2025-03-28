@@ -71,7 +71,7 @@ namespace Kaenx.Creator.Models.Dynamic
         
         public IDynItems Copy()
         {
-            DynChooseBlock dyn = (DynChooseBlock)this.MemberwiseClone();
+            DynChooseChannel dyn = (DynChooseChannel)this.MemberwiseClone();
             dyn.Items = new ObservableCollection<IDynItems>();
             foreach (IDynItems item in this.Items)
                 dyn.Items.Add((IDynItems)item.Copy());

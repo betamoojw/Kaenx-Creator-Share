@@ -558,10 +558,10 @@ namespace Kaenx.Creator.Classes
                     }
                 }
 
-                if (!string.IsNullOrEmpty(cref._typeNumber) && DPTs != null)
+                if (cref.OverwriteDpt && !string.IsNullOrEmpty(cref._typeNumber) && DPTs != null)
                     cref.Type = DPTs.Single(d => d.Number == cref._typeNumber);
                     
-                if(!string.IsNullOrEmpty(cref._subTypeNumber) && cref.Type != null)
+                if(cref.OverwriteDpst && !string.IsNullOrEmpty(cref._subTypeNumber) && cref.Type != null)
                     cref.SubType = cref.Type.SubTypes.Single(d => d.Number == cref._subTypeNumber);
 
                 if(!mod.IsComObjectRefAuto && cref.UseTextParameter && cref._parameterRef != -1)

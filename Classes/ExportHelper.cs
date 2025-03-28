@@ -756,8 +756,7 @@ namespace Kaenx.Creator.Classes
                 XDocument doc2 = XDocument.Load(GetRelPath("Temp", Manu, appVersion + ".validate.xml"), LoadOptions.SetLineInfo);
 
                 doc2.Validate(schemas, (o, e) => {
-                    Log($"Fehler beim Validieren! Zeile {e.Exception.LineNumber}:{e.Exception.LinePosition}\r\n--->{e.Message}\r\n--->({o})");
-                    actions.Add(new PublishAction() { Text = $"    Fehler beim Validieren! Zeile {e.Exception.LineNumber}:{e.Exception.LinePosition} -> {e.Message} ({o})", State = PublishState.Fail});
+                    LogE($"Fehler beim Validieren! Zeile {e.Exception.LineNumber}:{e.Exception.LinePosition}\r\n--->{e.Message}\r\n--->({o})");
                     flag = true;
                 });
 
@@ -2502,6 +2501,13 @@ namespace Kaenx.Creator.Classes
             Debug.WriteLine($"       {message}");
             if(actions != null)
                 actions.Add(new() { Text = $"       {message}"});
+        }
+
+        private void LogE(string message)
+        {
+            Debug.WriteLine($"       {message}");
+            if(actions != null)
+                actions.Add(new() { Text = $"       {message}", State = PublishState.Fail});
         }
 
         public XElement CreateNewXML(string manu)
