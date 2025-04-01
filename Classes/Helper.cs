@@ -602,7 +602,7 @@ namespace Kaenx.Creator.Classes
                 switch(item)
                 {
                     case Models.Dynamic.DynChannel dch:
-                        if(dch.UseTextParameter)
+                        if(dch.UseTextParameter && ParaRefs.ContainsKey(dch._parameter))
                             dch.ParameterRefObject = ParaRefs[dch._parameter];
                         if(dch.UseIcon && dch._iconId != -1)
                             dch.IconObject = general.Icons.SingleOrDefault(i => i.UId == dch._iconId);
@@ -628,19 +628,19 @@ namespace Kaenx.Creator.Classes
                         break;
 
                     case Models.Dynamic.DynChooseChannel dcc:
-                        if (dcc._parameterRef != -1)
+                        if (dcc._parameterRef != -1 && ParaRefs.ContainsKey(dcc._parameterRef))
                             dcc.ParameterRefObject = ParaRefs[dcc._parameterRef];
                         break;
 
                     case Models.Dynamic.DynComObject dco:
-                        if (dco._comObjectRef != -1)
+                        if (dco._comObjectRef != -1 && ComRefs.ContainsKey(dco._comObjectRef))
                             dco.ComObjectRefObject = ComRefs[dco._comObjectRef];
                         break;
 
                     case Models.Dynamic.DynParaBlock dpb:
-                        if(dpb.UseParameterRef && dpb._parameterRef != -1)
+                        if(dpb.UseParameterRef && dpb._parameterRef != -1 && ParaRefs.ContainsKey(dpb._parameterRef))
                             dpb.ParameterRefObject = ParaRefs[dpb._parameterRef];
-                        if(dpb.UseTextParameter && dpb._textRef != -1)
+                        if(dpb.UseTextParameter && dpb._textRef != -1 && ParaRefs.ContainsKey(dpb._textRef))
                             dpb.TextRefObject = ParaRefs[dpb._textRef];
                         if(dpb.UseIcon && dpb._iconId != -1)
                             dpb.IconObject = general.Icons.SingleOrDefault(i => i.UId == dpb._iconId);
@@ -666,9 +666,9 @@ namespace Kaenx.Creator.Classes
                         break;
 
                     case Models.Dynamic.DynAssign dass:
-                        if(dass._targetUId != -1)
+                        if(dass._targetUId != -1 && ParaRefs.ContainsKey(dass._targetUId))
                             dass.TargetObject = ParaRefs[dass._targetUId];
-                        if(string.IsNullOrEmpty(dass.Value) && dass._sourceUId != -1)
+                        if(string.IsNullOrEmpty(dass.Value) && dass._sourceUId != -1 && ParaRefs.ContainsKey(dass._sourceUId))
                             dass.SourceObject = ParaRefs[dass._sourceUId];
                         if(string.IsNullOrEmpty(dass.Value) && dass._sourceUId == -1)
                         {
@@ -677,12 +677,12 @@ namespace Kaenx.Creator.Classes
                         break;
 
                     case Models.Dynamic.DynRepeat dre:
-                        if(dre.UseParameterRef && dre._parameterUId != -1)
+                        if(dre.UseParameterRef && dre._parameterUId != -1 && ParaRefs.ContainsKey(dre._parameterUId))
                             dre.ParameterRefObject = ParaRefs[dre._parameterUId];
                         break;
                     
                     case Models.Dynamic.DynButton db:
-                        if(db.UseTextParameter && db._textRef != -1)
+                        if(db.UseTextParameter && db._textRef != -1 && ParaRefs.ContainsKey(db._textRef))
                             db.TextRefObject = ParaRefs[db._textRef];
                         if(db.UseIcon && db._iconId != -1)
                             db.IconObject = general.Icons.SingleOrDefault(i => i.UId == db._iconId);
