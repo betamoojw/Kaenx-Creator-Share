@@ -676,7 +676,8 @@ namespace Kaenx.Creator.Classes
             #endregion
 
             XElement xdyn = new XElement(Get("Dynamic"));
-            HandleSubItems(ver.Dynamics[0], xdyn, ver);
+            GenerateModuleCounter(ver);
+            HandleSubItems(ver.Dynamics[0], xdyn, ver, ver);
 
             if(buttonScripts.Count > 0)
             {
@@ -992,6 +993,29 @@ namespace Kaenx.Creator.Classes
             return true;
         }
 
+        private Dictionary<string, int> moduleCounter = new Dictionary<string, int>();
+        private void GenerateModuleCounter(IVersionBase ver)
+        {
+            List<DynModule> modules = new List<DynModule>();
+            Helper.GetModules(ver.Dynamics[0], modules);
+
+            string name = "base";
+            if(ver is Models.Module mod)
+                name = mod.Name;
+
+            foreach(DynModule dmod in modules)
+            {
+                string key = name + dmod.ModuleObject.Name;
+                if(moduleCounter.ContainsKey(key))
+                {
+                    if(moduleCounter[key] < dmod.Id)
+                        moduleCounter[key] = dmod.Id;
+                } else {
+                    moduleCounter.Add(key, dmod.Id);
+                }
+            }
+        }
+
         public static string HeaderNameEscape(string name)
         {
             return name.Replace(' ', '_').Replace('-', '_');
@@ -1093,8 +1117,8 @@ namespace Kaenx.Creator.Classes
                     
                     XElement xmoddyn = new XElement(Get("Dynamic"));
                     xmod.Add(xmoddyn);
-
-                    HandleSubItems(mod.Dynamics[0], xmoddyn, ver);
+                    GenerateModuleCounter(mod);
+                    HandleSubItems(mod.Dynamics[0], xmoddyn, ver, mod);
 
                     headers.AppendLine("");
 
@@ -1956,7 +1980,7 @@ namespace Kaenx.Creator.Classes
 
         #region Create Dyn Stuff
 
-        private void HandleSubItems(IDynItems parent, XElement xparent, AppVersion ver = null)
+        private void HandleSubItems(IDynItems parent, XElement xparent, AppVersion ver = null, IVersionBase vbase = null)
         {
             foreach (IDynItems item in parent.Items)
             {
@@ -1994,7 +2018,7 @@ namespace Kaenx.Creator.Classes
                         break;
 
                     case DynModule dm:
-                        HandleMod(dm, xparent, ver);
+                        HandleMod(dm, xparent, ver, vbase);
                         break;
 
                     case DynAssign da:
@@ -2014,7 +2038,7 @@ namespace Kaenx.Creator.Classes
                 }
 
                 if (item.Items != null && xitem != null)
-                    HandleSubItems(item, xitem, ver);
+                    HandleSubItems(item, xitem, ver, vbase);
             }
         }
 
@@ -2067,11 +2091,25 @@ namespace Kaenx.Creator.Classes
             parent.Add(xcom);
         }
 
-        private int moduleCounter = 1;
-        private void HandleMod(DynModule mod, XElement parent, AppVersion ver)
+        private void HandleMod(DynModule mod, XElement parent, AppVersion ver, IVersionBase vbase)
         {
             XElement xmod = new XElement(Get("Module"));
-            mod.Id = moduleCounter++;
+            if(mod.Id == -1)
+            {
+                string name = "base";
+                if(vbase is Models.Module vmod)
+                {
+                    name = vmod.Name;
+                }
+                string key = name + mod.ModuleObject.Name;
+                if(!moduleCounter.ContainsKey(key))
+                    moduleCounter.Add(key, 1);
+                else if(moduleCounter[key] == -1)
+                    moduleCounter[key] = 1;
+                else
+                    moduleCounter[key]++;
+                mod.Id = moduleCounter[key];
+            }
             xmod.SetAttributeValue("Id", $"{appVersionMod}_{(appVersionMod.Contains("_MD-") ? "SM":"MD")}-{mod.ModuleObject.Id}_M-{mod.Id}");
             xmod.SetAttributeValue("RefId", mod.ModuleObject.ExportHelper); // $"{appVersionMod}_MD-{mod.ModuleObject.Id}");
 
