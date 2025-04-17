@@ -13,6 +13,7 @@ namespace Kaenx.Creator.Models
 
         public ObservableCollection<TranslationItem> Items { get; set; } = new ObservableCollection<TranslationItem>();
 
+        public int UId { get; set; } = -5;
 
         private string _name = "";
         public string Name {
