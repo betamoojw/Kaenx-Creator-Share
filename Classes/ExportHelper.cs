@@ -1512,20 +1512,28 @@ namespace Kaenx.Creator.Classes
 
                         line = $"#define Ko{prefix}_{HeaderNameEscape(com.Name)}";
                         string definel = $"{prefix}_Ko{HeaderNameEscape(com.Name)}";
-                        headers.AppendLine($"#define {definel} {com.Number}");
 
                         if(vmod.IsOpenKnxModule)
                         {
                             prefix += "_" + vmod.Name.Substring(vmod.Name.IndexOf(' ')+1);
                         }
 
+                        string koOffset = $" + {prefix}_KoOffset";
+                        if(vmod.IncludeOffsetInKoHeader)
+                        {
+                            headers.AppendLine($"#define {definel} {com.Number}{koOffset}");
+                            koOffset = "";
+                        } else {
+                            headers.AppendLine($"#define {definel} {com.Number}");
+                        }
+
                         if(vmod.Name.EndsWith("Share"))
                         {
-                            headers.AppendLine($"{line} knx.getGroupObject({definel} + {prefix}_KoOffset)");
+                            headers.AppendLine($"{line} knx.getGroupObject({definel}{koOffset})");
                         } else if((vmod.IsOpenKnxModule && vmod.Name.EndsWith("Templ")) || !vmod.IsOpenKnxModule)
                         {
-                            headers.AppendLine($"{line}Index(X) knx.getGroupObject({prefix}_KoOffset + {prefix}_KoBlockSize * X + {definel})");
-                            headers.AppendLine($"{line} knx.getGroupObject({prefix}_KoOffset + {prefix}_KoBlockSize * channelIndex() + {definel})");
+                            headers.AppendLine($"{line}Index(X) knx.getGroupObject({prefix}_KoBlockSize * X + {definel}{koOffset})");
+                            headers.AppendLine($"{line} knx.getGroupObject({prefix}_KoBlockSize * channelIndex() + {definel}{koOffset})");
                         } else {
                             headers.AppendLine($"{line} knx.getGroupObject({definel})");
                         }

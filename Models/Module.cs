@@ -72,6 +72,13 @@ namespace Kaenx.Creator.Models
             set { _isAutoCBN = value; Changed("IsComObjectBaseNumberAuto"); }
         }
 
+        private bool _includeOffsetInKoHeader = false;
+        public bool IncludeOffsetInKoHeader
+        {
+            get { return _includeOffsetInKoHeader ; }
+            set { _includeOffsetInKoHeader  = value; Changed("IncludeOffsetInKoHeader"); }
+        }
+
         
         private Argument _parameterBaseOffset;
         [JsonIgnore]
