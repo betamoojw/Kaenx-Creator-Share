@@ -29,9 +29,15 @@ namespace Kaenx.Creator.Models
         public bool HasApplicationProgram2 { get; set; } = false;
         public bool IsPowerSupply { get; set; } = false;
         public bool IsCoppler { get; set; } = false;
-        public bool IsIpEnabled { get; set; } = false;
 
-        public ObservableCollection<Translation> Text {get;set;} = new ObservableCollection<Translation>();
+        private bool _isIpEnabled = false;
+        public bool IsIpEnabled
+        {
+            get { return _isIpEnabled; }
+            set { _isIpEnabled = value; Changed("IsIpEnabled"); }
+        }
+
+        public ObservableCollection<Translation> Text { get; set; } = new ObservableCollection<Translation>();
         public ObservableCollection<Translation> Description {get;set;} = new ObservableCollection<Translation>();
         public string OrderNumber { get; set; } = "TA-00002.1";
         public bool IsRailMounted { get; set; } = true;

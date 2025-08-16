@@ -51,7 +51,7 @@ namespace Kaenx.Creator.Classes
             if(!languages[lang][id].ContainsKey(attr)) languages[lang][id].Add(attr, value);
         }
 
-        public bool ExportEts(ObservableCollection<PublishAction> _actions)
+        public bool ExportEts(ObservableCollection<PublishAction> _actions, bool isDevMode)
         {
             actions = _actions;
             string Manu = "M-" + GetManuId();
@@ -106,8 +106,10 @@ namespace Kaenx.Creator.Classes
             xapp.SetAttributeValue("PeiType", "0");
             xapp.SetAttributeValue("DynamicTableManagement", "false"); //TODO check when to add
             xapp.SetAttributeValue("Linkable", "false"); //TODO check when to add
-
-            if(ver.IsBusInterfaceActive && ver.BusInterfaceCounter > 0)
+            if(general.Info.IsIpEnabled)
+                xapp.SetAttributeValue("IPConfig", ver.IpConfig);
+            
+            if (ver.IsBusInterfaceActive && ver.BusInterfaceCounter > 0)
             {
                 xapp.SetAttributeValue("AdditionalAddressesCount", ver.BusInterfaceCounter);
             }
@@ -116,6 +118,7 @@ namespace Kaenx.Creator.Classes
                 xapp.SetAttributeValue("IsSecureEnabled", "true");
                 if(ver.IsBusInterfaceActive)
                 {
+                    // TODO get correct value
                     xapp.SetAttributeValue("MaxUserEntries", "1");
                 }
             }
@@ -473,10 +476,14 @@ namespace Kaenx.Creator.Classes
 
                         case "LdCtrlCompareProp":
                         {
-                            if(xele.Attribute("ObjIdx").Value == "0" && xele.Attribute("PropId").Value == "12")
-                                xele.Attribute("InlineData").Value = GetManuId();
-                            if(general.IsOpenKnx && xele.Attribute("ObjIdx").Value == "0" && xele.Attribute("PropId").Value == "78")
-                                xele.Attribute("InlineData").Value = $"0000{general.ManufacturerId:X2}{general.Info.AppNumber:X2}{general.Application.Number:X2}00";
+                            if (isDevMode) {
+                                xele.Remove();
+                            } else {
+                                if (xele.Attribute("ObjIdx").Value == "0" && xele.Attribute("PropId").Value == "12")
+                                            xele.Attribute("InlineData").Value = GetManuId();
+                                if(general.IsOpenKnx && xele.Attribute("ObjIdx").Value == "0" && xele.Attribute("PropId").Value == "78")
+                                    xele.Attribute("InlineData").Value = $"0000{general.ManufacturerId:X2}{general.Info.AppNumber:X2}{general.Application.Number:X2}00";
+                            }
                             break;
                         }
                     }

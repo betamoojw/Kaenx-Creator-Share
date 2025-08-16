@@ -262,6 +262,13 @@ namespace Kaenx.Creator.Models
             set { _isPreETS4 = value; Changed("IsPreETS4"); }
         }
 
+        private string _ipConfig = "Tool";
+        public string IpConfig
+        {
+            get { return _ipConfig; }
+            set { _ipConfig = value; Changed("IpConfig"); }
+        }
+
         public long LastParameterId { get; set; } = 0;
         public long LastParameterRefId { get; set; } = 0;
         public int LastDynModuleId { get; set; } = 0;
