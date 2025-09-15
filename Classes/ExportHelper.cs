@@ -113,14 +113,22 @@ namespace Kaenx.Creator.Classes
             {
                 xapp.SetAttributeValue("AdditionalAddressesCount", ver.BusInterfaceCounter);
             }
-            if(ver.IsSecureActive)
+            if (ver.IsSecureActive)
             {
                 xapp.SetAttributeValue("IsSecureEnabled", "true");
-                if(ver.IsBusInterfaceActive)
-                {
-                    // TODO get correct value
-                    xapp.SetAttributeValue("MaxUserEntries", "1");
-                }
+
+                if (general.Application.Security.MaxUserEntries != 1)
+                    xapp.SetAttributeValue("MaxUserEntries", general.Application.Security.MaxUserEntries);
+                if (general.Application.Security.MaxTunnelingUserEntries != 0)
+                    xapp.SetAttributeValue("MaxTunnelingUserEntries", general.Application.Security.MaxTunnelingUserEntries);
+                if (general.Application.Security.MaxSecurityProxyGroupKeyTableEntries != 0)
+                    xapp.SetAttributeValue("MaxSecurityProxyGroupKeyTableEntries", general.Application.Security.MaxSecurityProxyGroupKeyTableEntries);
+                if (general.Application.Security.MaxSecurityP2PKeyTableEntries != 0)
+                    xapp.SetAttributeValue("MaxSecurityP2PKeyTableEntries", general.Application.Security.MaxSecurityP2PKeyTableEntries);
+                if (general.Application.Security.MaxSecurityIndividualAddressEntries != 0)
+                    xapp.SetAttributeValue("MaxSecurityIndividualAddressEntries", general.Application.Security.MaxSecurityIndividualAddressEntries);
+                if (general.Application.Security.MaxSecurityGroupKeyTableEntries != 0)
+                    xapp.SetAttributeValue("MaxSecurityGroupKeyTableEntries", general.Application.Security.MaxSecurityGroupKeyTableEntries);
             }
 
             buttonScripts = new List<string>();
@@ -456,7 +464,7 @@ namespace Kaenx.Creator.Classes
 
                 temp.Attributes().Where((x) => x.IsNamespaceDeclaration).Remove();
                 temp.Name = XName.Get(temp.Name.LocalName, currentNamespace);
-                foreach(XElement xele in temp.Descendants())
+                foreach(XElement xele in temp.Descendants().ToList())
                 {
                     xele.Name = XName.Get(xele.Name.LocalName, currentNamespace);
                     switch(xele.Name.LocalName)
@@ -680,6 +688,27 @@ namespace Kaenx.Creator.Classes
             }
             System.IO.File.WriteAllText(headerPath, headersString);
             headers = null;
+            #endregion
+
+            #region Options
+
+            XElement? xopts = null;
+
+            var props = ver.Options.GetType().GetProperties();
+            foreach (var prop in props)
+            {
+                var value = prop.GetValue(ver.Options);
+                if (value is bool boolValue && boolValue)
+                {
+                    if (xopts == null)
+                    {
+                        xopts = new XElement(Get("Options"));
+                        xunderapp.Add(xopts);
+                    }
+                    xopts.SetAttributeValue(prop.Name, "true");
+                }
+            }
+
             #endregion
 
             XElement xdyn = new XElement(Get("Dynamic"));

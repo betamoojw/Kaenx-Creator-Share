@@ -24,6 +24,8 @@ namespace Kaenx.Creator.Models
         public ObservableCollection<Allocator> Allocators { get; set; } = new ObservableCollection<Allocator>();
         public ObservableCollection<OpenKnxModule> OpenKnxModules { get; set; } = new ObservableCollection<OpenKnxModule>();
         public List<IDynamicMain> Dynamics { get; set; } = new List<IDynamicMain>();
+        public Options Options { get; set; } = new Options();
+        public Security Security { get; set; } = new Security();
 
         public AppVersion() { }
 
