@@ -29,6 +29,7 @@ namespace Kaenx.Creator.Classes
         List<Icon> iconsApp = new List<Icon>();
         List<string> buttonScripts;
         ObservableCollection<PublishAction> actions;
+        bool isProducerExport = false;
 
         public ExportHelper(MainModel g)
         {
@@ -85,6 +86,7 @@ namespace Kaenx.Creator.Classes
             appVersion = $"{Manu}_A-{GetAppId(general.Info.AppNumber)}-{ver.Number:X2}";
             appVersion += "-0000";
             appVersionMod = appVersion;
+            isProducerExport = false;
 
             currentLang = ver.DefaultLanguage;
             foreach(Models.Translation trans in ver.Text)
@@ -1029,6 +1031,84 @@ namespace Kaenx.Creator.Classes
             return true;
         }
 
+        public void ExportModuleToProducer(Models.Module mod, AppVersion ver, string exportPath)
+        {
+            var xpararefs = mod.ParameterRefs.GroupBy(pref => pref.ParameterObject.Id);
+            foreach(IGrouping<long, ParameterRef> prefs in xpararefs)
+            {
+                int counter = 1;
+                foreach (ParameterRef xref in prefs)
+                    xref.Id = counter++;
+            }
+
+            var xcomrefs = mod.ComObjectRefs.GroupBy(cref => cref.ComObjectObject.Id);
+            foreach (IGrouping<long, ComObjectRef> crefs in xcomrefs)
+            {
+                int counter = 1;
+                foreach (ComObjectRef xref in crefs)
+                    xref.Id = counter++;
+            }
+
+            SetNamespace(20);
+
+            StringBuilder headers = new StringBuilder();
+
+            appVersion = "%AID%";
+            appVersionMod = "%AID%";
+            currentLang = "de-DE";
+            languages = new Dictionary<string, Dictionary<string, Dictionary<string, string>>>();
+            buttonScripts = new List<string>();
+            isProducerExport = true;
+
+            XElement xstatic = new XElement(Get("Static"));
+            ExportParameters(ver, mod, xstatic, headers);
+            ExportParameterRefs(mod, xstatic);
+            ExportComObjects(ver, mod, xstatic, headers);
+            ExportComObjectRefs(mod, xstatic);
+
+            XElement xmoddyn = new XElement(Get("Dynamic"));
+            GenerateModuleCounter(mod);
+
+            DynamicMain dmain = new();
+            DynChannelIndependent chi = new();
+            
+            foreach(var x in mod.Dynamics[0].Items)
+            {
+                if(x is DynParaBlock dpara)
+                {
+                    dpara.Parent = chi;
+                    chi.Items.Add(dpara);
+                } else if(x is DynChannel dch)
+                {
+                    throw new Exception("Channels are not allowed in module dynamics for producer export!");
+                } else if(x is DynChannelIndependent dchi)
+                {
+                    chi = dchi;
+                    chi.Parent = dmain;
+                } else
+                {
+                    throw new Exception("Only Parameters and Channel Independents are allowed in module dynamics for producer export!");
+                }
+            }
+            dmain.Items.Add(chi);
+
+            HandleSubItems(dmain, xmoddyn, ver, mod);
+
+            XElement xmanu = CreateNewXML("M-00FA");
+            XElement xapps = new XElement(Get("ApplicationPrograms"));
+            xmanu.Add(xapps);
+            XElement xapp = new XElement(Get("ApplicationProgram"));
+            xapp.Add(xstatic);
+            xapp.Add(xmoddyn);
+            xapps.Add(xapp);
+
+            File.WriteAllText(Path.Combine(exportPath, $"{mod.Name}.templ.xml"), xmanu.Document.ToString());
+            if(buttonScripts.Count > 0)
+            {
+                File.WriteAllText(Path.Combine(exportPath, $"{mod.Name}.script.js"), string.Join("\r\n\r\n", buttonScripts));
+            }
+        }
+
         private Dictionary<string, int> moduleCounter = new Dictionary<string, int>();
         private void GenerateModuleCounter(IVersionBase ver)
         {
@@ -1475,10 +1555,9 @@ namespace Kaenx.Creator.Classes
                 //Log($"    - ParameterRef {pref.UId} {pref.Name}");
                 if (pref.ParameterObject == null) continue;
                 XElement xpref = new XElement(Get("ParameterRef"));
-                string id = appVersionMod + (pref.ParameterObject.IsInUnion ? "_UP-" : "_P-") + pref.ParameterObject.Id;
-                xpref.SetAttributeValue("Id", $"{id}_R-{pref.Id}");
+                string id = appVersionMod + (pref.ParameterObject.IsInUnion ? "_UP-" : "_P-") + IdFormat(pref.ParameterObject.Id);
                 xpref.SetAttributeValue("RefId", id);
-                id += $"_R-{pref.Id}";
+                id += $"_R-{IdRefFormat(pref.ParameterObject.Id, pref.Id)}";
                 xpref.SetAttributeValue("Id", id);
                 if(!string.IsNullOrEmpty(pref.Name))
                     xpref.SetAttributeValue("Name", pref.Name);
@@ -1511,13 +1590,13 @@ namespace Kaenx.Creator.Classes
         {
             Log($"Exportiere ComObjects: {vbase.ComObjects.Count}x");
             XElement xcoms;
-            if(vbase is Models.AppVersion)
+            if(vbase is Models.AppVersion || isProducerExport)
                 xcoms = new XElement(Get("ComObjectTable"));
             else
                 xcoms = new XElement(Get("ComObjects"));
 
             Models.Argument baseNumber = null;
-            if(vbase is Models.Module mod)
+            if(vbase is Models.Module mod && !isProducerExport)
             {
                 baseNumber = mod.ComObjectBaseNumber;
             }
@@ -1583,12 +1662,12 @@ namespace Kaenx.Creator.Classes
 
                 XElement xcom = new XElement(Get("ComObject"));
                 string id = $"{appVersionMod}_O-";
-                if(vbase is Models.Module) id += "2-";
-                id += com.Id;
+                if(vbase is Models.Module && !isProducerExport) id += "2-";
+                id += IdFormat(com.Id);
                 xcom.SetAttributeValue("Id", id);
-                xcom.SetAttributeValue("Name", com.Name);
+                xcom.SetAttributeValue("Name", (isProducerExport ? "%C%" : "") + com.Name);
                 xcom.SetAttributeValue("Text", GetDefaultLanguage(com.Text));
-                xcom.SetAttributeValue("Number", com.Number);
+                xcom.SetAttributeValue("Number", isProducerExport ? $"%K{com.Number}" : com.Number);
                 xcom.SetAttributeValue("FunctionText", GetDefaultLanguage(com.FunctionText));
                 
                 if(!com.TranslationText)
@@ -1638,11 +1717,10 @@ namespace Kaenx.Creator.Classes
                 //Log($"    - ComObjectRef {cref.UId} {cref.Name}");
                 XElement xcref = new XElement(Get("ComObjectRef"));
                 string id = $"{appVersionMod}_O-";
-                if(vbase is Models.Module) id += "2-";
-                id += cref.ComObjectObject.Id;
-                xcref.SetAttributeValue("Id", $"{id}_R-{cref.Id}");
+                if(vbase is Models.Module && !isProducerExport) id += "2-";
+                id += IdFormat(cref.ComObjectObject.Id);
                 xcref.SetAttributeValue("RefId", id);
-                id += $"_R-{cref.Id}";
+                id += $"_R-{IdRefFormat(cref.ComObjectObject.Id, cref.Id)}";
                 xcref.SetAttributeValue("Id", id);
 
                 if(cref.OverwriteText) {
@@ -1681,13 +1759,11 @@ namespace Kaenx.Creator.Classes
 
                 if(vbase.IsComObjectRefAuto && cref.ComObjectObject.UseTextParameter)
                 {
-                    int nsVersion = int.Parse(currentNamespace.Substring(currentNamespace.LastIndexOf('/')+1));
-                    xcref.SetAttributeValue("TextParameterRefId", appVersionMod + (cref.ComObjectObject.ParameterRefObject.ParameterObject.IsInUnion ? "_UP-" : "_P-") + $"{cref.ComObjectObject.ParameterRefObject.ParameterObject.Id}_R-{cref.ComObjectObject.ParameterRefObject.Id}");
+                    xcref.SetAttributeValue("TextParameterRefId", appVersionMod + (cref.ComObjectObject.ParameterRefObject.ParameterObject.IsInUnion ? "_UP-" : "_P-") + $"{IdFormat(cref.ComObjectObject.ParameterRefObject.ParameterObject.Id)}_R-{IdRefFormat(cref.ComObjectObject.ParameterRefObject.ParameterObject.Id, cref.ComObjectObject.ParameterRefObject.Id)}");
                 }
                 if(!vbase.IsComObjectRefAuto && cref.UseTextParameter)
                 {
-                    int nsVersion = int.Parse(currentNamespace.Substring(currentNamespace.LastIndexOf('/')+1));
-                    xcref.SetAttributeValue("TextParameterRefId", appVersionMod + (cref.ParameterRefObject.ParameterObject.IsInUnion ? "_UP-" : "_P-") + $"{cref.ParameterRefObject.ParameterObject.Id}_R-{cref.ParameterRefObject.Id}");    
+                    xcref.SetAttributeValue("TextParameterRefId", appVersionMod + (cref.ParameterRefObject.ParameterObject.IsInUnion ? "_UP-" : "_P-") + $"{IdFormat(cref.ParameterRefObject.ParameterObject.Id)}_R-{IdRefFormat(cref.ParameterRefObject.ParameterObject.Id, cref.ParameterRefObject.Id)}");    
                 }
 
                 if(cref.OverwriteFC)
@@ -1924,9 +2000,9 @@ namespace Kaenx.Creator.Classes
             }
 
             XElement xpara = new XElement(Get("Parameter"));
-            string id = appVersionMod + (para.IsInUnion ? "_UP-" : "_P-") + para.Id;
+            string id = appVersionMod + (para.IsInUnion ? "_UP-" : "_P-") + IdFormat(para.Id);
             xpara.SetAttributeValue("Id", id);
-            xpara.SetAttributeValue("Name", para.Name);
+            xpara.SetAttributeValue("Name", (isProducerExport ? "%C%" : "") + para.Name);
             xpara.SetAttributeValue("ParameterType", $"{appVersion}_PT-{GetEncoded(para.ParameterTypeObject.Name)}");
 
             if(!para.TranslationText)
@@ -1951,7 +2027,7 @@ namespace Kaenx.Creator.Classes
                         xparamem.SetAttributeValue("Offset", para.Offset);
                         xparamem.SetAttributeValue("BitOffset", para.OffsetBit);
 
-                        if(vbase is Models.Module mod)
+                        if(vbase is Models.Module mod && !isProducerExport)
                         {
                             xparamem.SetAttributeValue("BaseOffset", $"{appVersionMod}_A-{mod.ParameterBaseOffset.Id}");
                         }
@@ -2128,8 +2204,8 @@ namespace Kaenx.Creator.Classes
             XElement xcom = new XElement(Get("ComObjectRefRef"));
             string id = $"{appVersionMod}_O-";
 
-            if(appVersion != appVersionMod) id += "2-";
-            id += $"{com.ComObjectRefObject.ComObjectObject.Id}_R-{com.ComObjectRefObject.Id}";
+            if(appVersion != appVersionMod && !isProducerExport) id += "2-";
+            id += $"{IdFormat(com.ComObjectRefObject.ComObjectObject.Id)}_R-{IdRefFormat(com.ComObjectRefObject.ComObjectObject.Id, com.ComObjectRefObject.Id)}";
 
             xcom.SetAttributeValue("RefId", id);
             parent.Add(xcom);
@@ -2137,6 +2213,9 @@ namespace Kaenx.Creator.Classes
 
         private void HandleMod(DynModule mod, XElement parent, AppVersion ver, IVersionBase vbase)
         {
+            if(isProducerExport)
+                throw new Exception("Module sind nicht erlaubt bei einem Producer-Export");
+
             XElement xmod = new XElement(Get("Module"));
             if(mod.Id == -1)
             {
@@ -2185,7 +2264,7 @@ namespace Kaenx.Creator.Classes
         {
             XElement xsep = new XElement(Get("ParameterSeparator"));
             sep.Id = separatorCounter++;
-            xsep.SetAttributeValue("Id", $"{appVersionMod}_PS-{sep.Id}");
+            xsep.SetAttributeValue("Id", $"{appVersionMod}_PS-{(isProducerExport ? "nnn" : sep.Id)}");
             xsep.SetAttributeValue("Text", GetDefaultLanguage(sep.Text));
             if(sep.Hint != SeparatorHint.None)
             {
@@ -2215,9 +2294,15 @@ namespace Kaenx.Creator.Classes
             XElement xcho = new XElement(Get("choose"));
             parent.Add(xcho);
             if(!cho.IsGlobal)
-                xcho.SetAttributeValue("ParamRefId", appVersionMod + (cho.ParameterRefObject.ParameterObject.IsInUnion ? "_UP-" : "_P-") + $"{cho.ParameterRefObject.ParameterObject.Id}_R-{cho.ParameterRefObject.Id}");
+                xcho.SetAttributeValue("ParamRefId", appVersionMod + (cho.ParameterRefObject.ParameterObject.IsInUnion ? "_UP-" : "_P-") + $"{IdFormat(cho.ParameterRefObject.ParameterObject.Id)}_R-{IdRefFormat(cho.ParameterRefObject.ParameterObject.Id, cho.ParameterRefObject.Id)}");
             else
-                xcho.SetAttributeValue("ParamRefId", appVersion + (cho.ParameterRefObject.ParameterObject.IsInUnion ? "_UP-" : "_P-") + $"{cho.ParameterRefObject.ParameterObject.Id}_R-{cho.ParameterRefObject.Id}");
+            {
+
+                if (isProducerExport)
+                    xcho.SetAttributeValue("ParamRefId", $"GLOBAL_P-{cho.ParameterRefObject.ParameterObject.Id}_R-{cho.ParameterRefObject.Id}");
+                else
+                    xcho.SetAttributeValue("ParamRefId", appVersion + (cho.ParameterRefObject.ParameterObject.IsInUnion ? "_UP-" : "_P-") + $"{IdFormat(cho.ParameterRefObject.ParameterObject.Id)}_R-{IdRefFormat(cho.ParameterRefObject.ParameterObject.Id, cho.ParameterRefObject.Id)}");
+            }
             return xcho;
         }
 
@@ -2245,17 +2330,17 @@ namespace Kaenx.Creator.Classes
             //Wenn Block InLine ist, kann kein ParamRef angegeben werden
             if(bl.IsInline)
             {
-                block.SetAttributeValue("Id", $"{appVersionMod}_PB-{bl.Id}");
+                block.SetAttributeValue("Id", $"{appVersionMod}_PB-{(isProducerExport ? "nnn" : bl.Id)}");
                 block.SetAttributeValue("Inline", "true");
             } else {
                 if(bl.UseParameterRef)
                 {
-                    block.SetAttributeValue("Id", $"{appVersionMod}_PB-{bl.ParameterRefObject.Id}");
-                    block.SetAttributeValue("ParamRefId", appVersionMod + (bl.ParameterRefObject.ParameterObject.IsInUnion ? "_UP-" : "_P-") + $"{bl.ParameterRefObject.ParameterObject.Id}_R-{bl.ParameterRefObject.Id}");
+                    block.SetAttributeValue("Id", $"{appVersionMod}_PB-{(isProducerExport ? "nnn" : bl.ParameterRefObject.Id)}");
+                    block.SetAttributeValue("ParamRefId", appVersionMod + (bl.ParameterRefObject.ParameterObject.IsInUnion ? "_UP-" : "_P-") + $"{IdFormat(bl.ParameterRefObject.ParameterObject.Id)}_R-{IdRefFormat(bl.ParameterRefObject.ParameterObject.Id, bl.ParameterRefObject.Id)}");
                 }
                 else
                 {
-                    block.SetAttributeValue("Id", $"{appVersionMod}_PB-{bl.Id}");
+                    block.SetAttributeValue("Id", $"{appVersionMod}_PB-{(isProducerExport ? "nnn" : bl.Id)}");
                     string dText = GetDefaultLanguage(bl.Text);
                     //Wenn Block InLine ist, kann kein Text angegeben werden
                     if (!string.IsNullOrEmpty(dText))
@@ -2278,7 +2363,7 @@ namespace Kaenx.Creator.Classes
                     foreach(ParameterBlockRow row in bl.Rows)
                     {
                         XElement xrow = new XElement(Get("Row"));
-                        xrow.SetAttributeValue("Id", $"{appVersionMod}_PB-{bl.Id}_R-{rowCounter++}");
+                        xrow.SetAttributeValue("Id", $"{appVersionMod}_PB-{(isProducerExport ? "nnn" : bl.Id)}_R-{rowCounter++}");
                         xrow.SetAttributeValue("Name", row.Name);
                         xrows.Add(xrow);
                     }
@@ -2292,7 +2377,7 @@ namespace Kaenx.Creator.Classes
                     foreach(ParameterBlockColumn col in bl.Columns)
                     {
                         XElement xcol = new XElement(Get("Column"));
-                        xcol.SetAttributeValue("Id", $"{appVersionMod}_PB-{bl.Id}_C-{colCounter++}");
+                        xcol.SetAttributeValue("Id", $"{appVersionMod}_PB-{(isProducerExport ? "nnn" : bl.Id)}_C-{colCounter++}");
                         xcol.SetAttributeValue("Name", col.Name);
                         xcol.SetAttributeValue("Width", $"{col.Width}%");
                         xcols.Add(xcol);
@@ -2306,7 +2391,7 @@ namespace Kaenx.Creator.Classes
 
             //Wenn Block InLine ist, kann kein TextParameter angegeben werden
             if (bl.UseTextParameter && !bl.IsInline)
-                block.SetAttributeValue("TextParameterRefId", appVersionMod + (bl.TextRefObject.ParameterObject.IsInUnion ? "_UP-" : "_P-") + $"{bl.TextRefObject.ParameterObject.Id}_R-{bl.TextRefObject.Id}");
+                block.SetAttributeValue("TextParameterRefId", appVersionMod + (bl.TextRefObject.ParameterObject.IsInUnion ? "_UP-" : "_P-") + $"{IdFormat(bl.TextRefObject.ParameterObject.Id)}_R-{IdRefFormat(bl.TextRefObject.ParameterObject.Id, bl.TextRefObject.Id)}");
 
             if(bl.ShowInComObjectTree)
                 block.SetAttributeValue("ShowInComObjectTree", "true");
@@ -2328,7 +2413,7 @@ namespace Kaenx.Creator.Classes
         {
             XElement xpara = new XElement(Get("ParameterRefRef"));
             parent.Add(xpara);
-            xpara.SetAttributeValue("RefId", appVersionMod + (pa.ParameterRefObject.ParameterObject.IsInUnion ? "_UP-" : "_P-") + $"{pa.ParameterRefObject.ParameterObject.Id}_R-{pa.ParameterRefObject.Id}");
+            xpara.SetAttributeValue("RefId", appVersionMod + (pa.ParameterRefObject.ParameterObject.IsInUnion ? "_UP-" : "_P-") + $"{IdFormat(pa.ParameterRefObject.ParameterObject.Id)}_R-{IdRefFormat(pa.ParameterRefObject.ParameterObject.Id, pa.ParameterRefObject.Id)}");
             if(!string.IsNullOrEmpty(pa.Cell))
                 xpara.SetAttributeValue("Cell", pa.Cell);
 
@@ -2349,9 +2434,9 @@ namespace Kaenx.Creator.Classes
         {
             XElement xcho = new XElement(Get("Assign"));
             parent.Add(xcho);
-            xcho.SetAttributeValue("TargetParamRefRef", appVersionMod + (da.TargetObject.ParameterObject.IsInUnion ? "_UP-" : "_P-") + $"{da.TargetObject.ParameterObject.Id}_R-{da.TargetObject.Id}");
+            xcho.SetAttributeValue("TargetParamRefRef", appVersionMod + (da.TargetObject.ParameterObject.IsInUnion ? "_UP-" : "_P-") + $"{IdFormat(da.TargetObject.ParameterObject.Id)}_R-{IdRefFormat(da.TargetObject.ParameterObject.Id, da.TargetObject.Id)}");
             if(string.IsNullOrEmpty(da.Value))
-                xcho.SetAttributeValue("SourceParamRefRef", appVersionMod + (da.SourceObject.ParameterObject.IsInUnion ? "_UP-" : "_P-") + $"{da.SourceObject.ParameterObject.Id}_R-{da.SourceObject.Id}");
+                xcho.SetAttributeValue("SourceParamRefRef", appVersionMod + (da.SourceObject.ParameterObject.IsInUnion ? "_UP-" : "_P-") + $"{IdFormat(da.SourceObject.ParameterObject.Id)}_R-{IdRefFormat(da.SourceObject.ParameterObject.Id, da.SourceObject.Id)}");
             else
                 xcho.SetAttributeValue("Value", da.Value);
             return xcho;
@@ -2360,6 +2445,9 @@ namespace Kaenx.Creator.Classes
         int repCount = 1;
         private XElement HandleRepeat(DynRepeat dr, XElement parent)
         {
+            if(isProducerExport)
+                throw new Exception("Repeat ist nicht erlaubt bei einem Producer-Export");
+
             XElement xcho = new XElement(Get("Repeat"));
             parent.Add(xcho);
             dr.Id = repCount++;
@@ -2375,11 +2463,11 @@ namespace Kaenx.Creator.Classes
         private void HandleButton(DynButton db, XElement parent)
         {
             XElement xbtn = new XElement(Get("Button"));
-            string id = $"{appVersionMod}_B-{btnCounter++}";
+            string id = $"{appVersionMod}_B-{IdFormat(btnCounter++)}";
             xbtn.SetAttributeValue("Id", id);
             xbtn.SetAttributeValue("Text", GetDefaultLanguage(db.Text));
 
-            int ns = int.Parse(currentNamespace.Substring(currentNamespace.LastIndexOf('/') + 1));
+            int ns = isProducerExport ? 24 : int.Parse(currentNamespace.Substring(currentNamespace.LastIndexOf('/') + 1));
             if(ns > 14)
                 xbtn.SetAttributeValue("Name", db.Name);
 
@@ -2399,7 +2487,7 @@ namespace Kaenx.Creator.Classes
                     iconsApp.Add(db.IconObject);
             }
             if (db.UseTextParameter)
-                xbtn.SetAttributeValue("TextParameterRefId", appVersionMod + (db.TextRefObject.ParameterObject.IsInUnion ? "_UP-" : "_P-") + $"{db.TextRefObject.ParameterObject.Id}_R-{db.TextRefObject.Id}");
+                xbtn.SetAttributeValue("TextParameterRefId", appVersionMod + (db.TextRefObject.ParameterObject.IsInUnion ? "_UP-" : "_P-") + $"{IdFormat(db.TextRefObject.ParameterObject.Id)}_R-{IdRefFormat(db.TextRefObject.ParameterObject.Id, db.TextRefObject.Id)}");
 
             parent.Add(xbtn);
 
@@ -2615,6 +2703,16 @@ namespace Kaenx.Creator.Classes
         private string GetAppId(int number)
         {
             return general.IsOpenKnx ? general.ManufacturerId.ToString("X2") + number.ToString("X2") : number.ToString("X4");
+        }
+
+        private string IdFormat(long id)
+        {
+            return isProducerExport ? $"%TT%%CC%{id:D3}" : id.ToString();
+        }
+
+        private string IdRefFormat(long id, long idref)
+        {
+            return isProducerExport ? $"%TT%%CC%{id:D3}{idref:D2}" : id.ToString();
         }
     }
 }
