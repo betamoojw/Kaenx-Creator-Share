@@ -1667,7 +1667,7 @@ namespace Kaenx.Creator.Classes
                 xcom.SetAttributeValue("Id", id);
                 xcom.SetAttributeValue("Name", (isProducerExport ? "%C%" : "") + com.Name);
                 xcom.SetAttributeValue("Text", GetDefaultLanguage(com.Text));
-                xcom.SetAttributeValue("Number", isProducerExport ? $"%K{com.Number}" : com.Number);
+                xcom.SetAttributeValue("Number", isProducerExport ? $"%K{com.Number}%" : com.Number);
                 xcom.SetAttributeValue("FunctionText", GetDefaultLanguage(com.FunctionText));
                 
                 if(!com.TranslationText)
