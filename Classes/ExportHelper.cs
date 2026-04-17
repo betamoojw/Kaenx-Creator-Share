@@ -2712,7 +2712,7 @@ namespace Kaenx.Creator.Classes
 
         private string IdRefFormat(long id, long idref)
         {
-            return isProducerExport ? $"%TT%%CC%{id:D3}{idref:D2}" : id.ToString();
+            return isProducerExport ? $"%TT%%CC%{id:D3}{idref:D2}" : idref.ToString();
         }
     }
 }
