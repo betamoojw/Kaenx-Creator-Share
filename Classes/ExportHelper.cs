@@ -839,7 +839,6 @@ namespace Kaenx.Creator.Classes
             if (general.Info.HasApplicationProgram2) xhard.SetAttributeValue("HasApplicationProgram2", "1");
             if (general.Info.IsPowerSupply) xhard.SetAttributeValue("IsPowerSupply", "1");
             if (general.Info.IsCoppler) xhard.SetAttributeValue("IsCoupler", "1");
-            if (general.Info.IsPowerSupply) xhard.SetAttributeValue("IsPowerSupply", "1");
             //xhard.SetAttributeValue("IsCable", "0"); //Todo check if means PoweLine Cable
             //xhard.SetAttributeValue("IsChoke", "0"); //Ist immer 0 da keine Drossel
             //xhard.SetAttributeValue("IsPowerLineRepeater", "0");
