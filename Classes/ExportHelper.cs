@@ -2630,7 +2630,7 @@ namespace Kaenx.Creator.Classes
             input = input.Replace("[", ".5B");
             input = input.Replace("\\", ".5C");
             input = input.Replace("]", ".5D");
-            input = input.Replace("^", ".5C");
+            input = input.Replace("^", ".5E");
             input = input.Replace("_", ".5F");
             input = input.Replace("{", ".7B");
             input = input.Replace("|", ".7C");
