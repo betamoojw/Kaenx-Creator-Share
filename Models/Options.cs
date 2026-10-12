@@ -48,6 +48,17 @@ namespace Kaenx.Creator.Models
             }
         }
 
+        private bool _lineCoupler0912NewProgrammingStyle = false;
+        public bool LineCoupler0912NewProgrammingStyle
+        {
+            get { return _lineCoupler0912NewProgrammingStyle; }
+            set
+            {
+                _lineCoupler0912NewProgrammingStyle = value;
+                OnPropertyChanged(nameof(LineCoupler0912NewProgrammingStyle));
+            }
+        }
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         protected virtual void OnPropertyChanged(string propertyName)
